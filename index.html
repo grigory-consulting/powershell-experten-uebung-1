@@ -546,12 +546,13 @@ Get-ChildItem .\messwerte\*.csv |
     Rename-Item -NewName { $_.BaseName + '.alt' } -WhatIf
 ```
 
-- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Der Skriptblock läuft je Pipeline-Objekt, `$_` ist das aktuelle Objekt 
-- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Der Parameter nimmt Pipeline-Eingabe an und ist weder `[scriptblock]` noch `[object]` 
-- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Der Parametername steht ausdrücklich im Aufruf 
-- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Ohne Pipeline-Eingabe: Fehler `ScriptBlockArgumentNoInput` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**Delay-Bind**: ein Skriptblock als Argument eines Parameters, der keinen Skriptblock erwartet; PowerShell wertet ihn je Eingabeobjekt aus und bindet das Ergebnis 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Der Skriptblock läuft je Pipeline-Objekt, `$_` ist das aktuelle Objekt 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Der Parameter nimmt Pipeline-Eingabe an und ist weder `[scriptblock]` noch `[object]` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Der Parametername steht ausdrücklich im Aufruf 
+- &shy;<!-- .element: class="fragment" data-fragment-index="5" -->Ohne Pipeline-Eingabe: Fehler `ScriptBlockArgumentNoInput` 
 
-<div class="quelle fragment" data-fragment-index="5">
+<div class="quelle fragment" data-fragment-index="6">
 
 Quelle: Microsoft Learn, about_Script_Blocks
 
@@ -662,13 +663,14 @@ function Get-Reading {
     "Gerät $DeviceId"
 }
 
-Get-Reading G-1042 -Verbose
+Get-Reading G-1042 -Verbose   # VERBOSE: Lese G-1042, dann Gerät G-1042
 ```
 
-- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`[CmdletBinding()]` oder ein `[Parameter()]`-Attribut macht die Funktion zur Advanced Function 
-- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Dazu kommen die Common Parameters (`-Verbose`, `-ErrorAction`, …) und `$PSCmdlet` 
-- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Überzählige Argumente sind ein Fehler, `$args` gibt es nicht mehr 
-- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Ein Array für einen `[string]`-Parameter wird abgelehnt statt still verbunden
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Eine einfache Funktion hat nur `param(…)`: Überzählige Argumente landen still in `$args` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`[CmdletBinding()]` oder ein `[Parameter()]`-Attribut macht die Funktion zur Advanced Function 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Dazu kommen die Common Parameters (`-Verbose`, `-ErrorAction`, …) und `$PSCmdlet` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Überzählige Argumente sind ein Fehler, `$args` gibt es nicht mehr 
+- &shy;<!-- .element: class="fragment" data-fragment-index="5" -->Ein Array für einen `[string]`-Parameter wird abgelehnt statt still verbunden
 </div>
 
 </script></section><section data-separator="?
@@ -699,8 +701,8 @@ Get-Reading G-1042 8          # G-1042, letzte 8 Werte
 ```
 
 - &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`Mandatory`: Fehlt der Wert, fragt PowerShell an der Konsole nach 
-- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`Position`: Aufruf ohne Parameternamen in fester Reihenfolge 
-- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`[Alias()]`: zweiter Name, gilt auch für die Bindung aus der Pipeline
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`Position`: Aufruf ohne Parameternamen in fester Reihenfolge, hier erst das Gerät, dann die Anzahl 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`[Alias()]`: zweiter Name wie `-Id`, gilt auch für die Bindung aus der Pipeline
 </div>
 
 </script></section><section data-separator="?
@@ -802,7 +804,8 @@ What if: Performing the operation "Löschen" on target "import-service_2026-11-2
 </div>
 
 - &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`SupportsShouldProcess` ergänzt die Parameter `-WhatIf` und `-Confirm` 
-- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`ShouldProcess()` liefert bei `-WhatIf` `$false` und schreibt die Meldung
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`ShouldProcess()` liefert bei `-WhatIf` `$false` und schreibt die Meldung 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Ohne Schalter liefert es `$true`; mit `-Confirm` fragt die Konsole vor jedem Eingriff nach
 </div>
 
 </script></section><section data-separator="?
@@ -1133,11 +1136,12 @@ New-ModuleManifest @manifest
 Test-ModuleManifest .\LogTools\LogTools.psd1
 ```
 
-- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`RootModule`: das `.psm1`, das beim Import geladen wird 
-- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`PowerShellVersion`: Mindestversion für den Import 
-- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`CompatiblePSEditions`: `Desktop` für 5.1, `Core` ab 6; bei eigenen Modulen nicht ausgewertet 
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Das Manifest (`.psd1`) ist eine Datendatei mit Version, Abhängigkeiten und Exporten; importiert wird danach die `.psd1` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`RootModule`: das `.psm1`, das beim Import geladen wird 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`PowerShellVersion`: Mindestversion für den Import 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`CompatiblePSEditions`: `Desktop` für 5.1, `Core` ab 6; bei eigenen Modulen nicht ausgewertet 
 
-<div class="quelle fragment" data-fragment-index="4">
+<div class="quelle fragment" data-fragment-index="5">
 
 Quelle: Microsoft Learn, about_Module_Manifests und about_PowerShell_Editions
 
@@ -1411,7 +1415,7 @@ function Get-Device { return @('G-1001') }
 ```
 
 - &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Je nach Trefferzahl liefert ein Befehl nichts, ein Objekt oder ein Array; `@()` macht daraus immer ein Array 
-- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Funktionen entrollen Arrays; `return ,$array` hält ein Array zusammen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Funktionen entrollen Arrays: Die Elemente kommen einzeln an, ein Array mit einem Element als einzelnes Objekt; `return ,$array` hält es zusammen 
 - &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`$a[0..-2]` läuft rückwärts herum: Auf `0..9` liefert es `0, 9, 8`
 </div>
 
@@ -1445,8 +1449,9 @@ $list.Add(1234.56)                              # wächst ohne Kopie
 
 - &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Arrays haben eine feste Größe: `+=` legt ein neues an und kopiert alles 
 - &shy;<!-- .element: class="fragment" data-fragment-index="3" -->PowerShell 7.5 hat `+=` beschleunigt, die Ausgabe zuzuweisen bleibt in beiden Versionen am schnellsten 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`List[T]` ist eine .NET-Liste für Elemente vom Typ `T`: `Add()` hängt an, ohne das Ganze zu kopieren 
 
-<div class="quelle fragment" data-fragment-index="4">
+<div class="quelle fragment" data-fragment-index="5">
 
 Messung: eigene Läufe in einer virtuellen Maschine mit Windows 11, November 2026
 
@@ -1617,9 +1622,10 @@ class LogEntry {
 }
 ```
 
-- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Eigenschaften mit Typ: Jede Zuweisung wird umgewandelt oder abgelehnt 
-- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Der Konstruktor heißt wie die Klasse, `$this` ist die Instanz 
-- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Methoden nennen ihren Rückgabetyp und liefern nur, was hinter `return` steht
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Ein Logeintrag als Klasse: Der Konstruktor zerlegt die Logzeile 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Eigenschaften mit Typ: Jede Zuweisung wird umgewandelt oder abgelehnt 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Der Konstruktor heißt wie die Klasse, `$this` ist die Instanz 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Methoden nennen ihren Rückgabetyp und liefern nur, was hinter `return` steht
 </div>
 
 </script></section><section data-separator="?
@@ -1657,8 +1663,9 @@ Timestamp Property   datetime Timestamp {get;set;}
 
 </div>
 
-- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`Get-Member` zeigt Eigenschaften und Methoden mit Typ und Signatur 
-- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`[LogEntry]::new` ohne Klammern listet die Überladungen des Konstruktors
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`::new()` erzeugt die Instanz; Methoden rufen Sie mit Klammern auf 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`Get-Member` zeigt Eigenschaften und Methoden mit Typ und Signatur 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`[LogEntry]::new` ohne Klammern listet die Überladungen des Konstruktors
 </div>
 
 </script></section><section data-separator="?
@@ -1759,9 +1766,10 @@ finally {
 }
 ```
 
-- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Ohne `-ErrorAction Stop` läuft `try` weiter, `catch` bleibt unberührt 
-- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Im `catch` ist `$_` der `ErrorRecord`: `Exception`, `CategoryInfo`, `InvocationInfo` 
-- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Spezifische Typen vor dem allgemeinen `catch`; `finally` läuft auch bei `exit`
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Hier greift der erste `catch`: Warnung mit dem Pfad der fehlenden Datei, danach gibt `finally` seinen Text aus 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Ohne `-ErrorAction Stop` läuft `try` weiter, `catch` bleibt unberührt 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Im `catch` ist `$_` der `ErrorRecord`: `Exception`, `CategoryInfo`, `InvocationInfo` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Spezifische Typen vor dem allgemeinen `catch`; `finally` läuft auch bei `exit`
 </div>
 
 </script></section><section data-separator="?
