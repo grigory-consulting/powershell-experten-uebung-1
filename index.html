@@ -1,0 +1,1928 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <title>PowerShell: Scripting für Experten, Teil I</title>
+    <link rel="stylesheet" href="dist/reset.css">
+    <link rel="stylesheet" href="dist/reveal.css" />
+    <link rel="stylesheet" href="css/slides-extended.css" />
+    <link rel="stylesheet" href="dist/theme/white.css" id="theme" />
+    <link rel="stylesheet" href="powershell-experten.css" />
+    <link rel="stylesheet" href="plugin/customcontrols/style.css">
+
+
+    <link rel="stylesheet" href="powershell-experten.css" />
+
+    <script defer src="dist/fontawesome/all.min.js"></script>
+
+    <script type="text/javascript">
+        function pageInIframe() {
+            return (window.location !== window.parent.location);
+        }
+
+        let forgetPop = true;
+        function onPopState(event) {
+            if(forgetPop){
+                forgetPop = false;
+            } else if( pageInIframe()) {
+                parent.postMessage(event.target.location.href, "app://obsidian.md");
+            }
+        }
+        window.onpopstate = onPopState;
+        window.onmessage = event => {
+            if(event.data == "reload"){
+                window.document.location.reload();
+            }
+            forgetPop = true;
+        }
+
+        function fitElements() {
+            const itemsToFit = document.getElementsByClassName('fitText');
+            for (const item in itemsToFit) {
+                if (Object.hasOwnProperty.call(itemsToFit, item)) {
+                    const element = itemsToFit[item];
+                    fitElement(element, 1, 1000);
+                    element.classList.remove('fitText');
+                }
+            }
+        }
+
+        function fitElement(element, start, end) {
+
+            let size = (end + start) / 2;
+            element.style.fontSize = `${size}px`;
+
+            if (Math.abs(start - end) < 1) {
+                while (element.scrollHeight > element.offsetHeight) {
+                    size--;
+                    element.style.fontSize = `${size}px`;
+                }
+                return;
+            }
+
+            if (element.scrollHeight > element.offsetHeight) {
+                fitElement(element, start, size);
+            } else {
+                fitElement(element, size, end);
+            }
+        }
+
+        document.onreadystatechange = () => {
+            fitElements();
+            if (document.readyState === 'complete') {
+                if (pageInIframe() && window.location.href.indexOf("?export") != -1){
+                    parent.postMessage(event.target.location.href, "app://obsidian.md");
+                }
+                if (window.location.href.indexOf("print-pdf") != -1){
+                    let stateCheck = setInterval(() => {
+                        clearInterval(stateCheck);
+                        window.print();
+                    }, 250);
+                }
+            }
+        };
+    </script>
+</head>
+
+<body>
+    <div class="reveal">
+        <div class="slides"><section ><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="title-slide drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="kicker">Seminar · PowerShell</p>
+
+# PowerShell: Scripting für Experten
+
+<p class="subtitle">Module, Tests, .NET, reguläre Ausdrücke, Parallelisierung, Sicherheit, Oberflächen</p>
+
+<p class="byline"><span class="author">Dr.-Ing. Grigory Devadze</span><span class="date">2026</span></p>
+
+<div class="numeral">PS</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">PowerShell: Scripting für Experten</p>
+
+## PowerShell und KI-Agenten
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**Coding-Agenten** arbeiten über die Shell: Der Agent führt Befehle aus und liest deren Ausgabe 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Unter Windows ist das **PowerShell**: Claude Code bringt ein eigenes PowerShell-Werkzeug mit, die GitHub Copilot CLI setzt PowerShell 6 oder neuer voraus 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Der Agent schlägt Befehle vor, **Sie geben sie frei** oder legen fest, was ohne Rückfrage laufen darf 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Was ein Agent schreibt, behandeln Sie wie eigenen Code: Versionsverwaltung, **Tests**, Pipeline, **Signatur**
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">PowerShell: Scripting für Experten</p>
+
+## ReAct-Loop: Überlegung, Aktion, Beobachtung
+
+<img src="figs/react-loop.png" alt="" style="object-fit: scale-down">
+
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**ReAct** (Reasoning and Acting): Das Modell wechselt zwischen Überlegen und Handeln, bis die Aufgabe erledigt ist 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Jede **Aktion** ist ein Werkzeugaufruf, in der Shell ein Befehl; jede **Beobachtung** ist dessen Ausgabe als Text 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Ihre Funktionen werden zu Werkzeugen des Agenten: Parameter, Ausgabe und Fehlermeldungen sind seine Schnittstelle
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">PowerShell: Scripting für Experten</p>
+
+## ReAct-Loop in PowerShell
+
+```powershell
+$chat = @(@{ role = 'system'; content = $rules },
+          @{ role = 'user'; content = $task })
+do {
+    $api.Body = @{ model = $model; messages = $chat } |
+        ConvertTo-Json -Depth 4
+    $reply = (Invoke-RestMethod @api).choices[0].message.content
+    $chat += @{ role = 'assistant'; content = $reply }
+    $action = if ($reply -match 'Aktion: (.+)') { $Matches[1] }
+    if ($action -and (Read-Host "Ausführen? $action") -eq 'j') {
+        $seen = try { & ([scriptblock]::Create($action)) *>&1 |
+                      Out-String } catch { "$_" }
+        $chat += @{ role = 'user'; content = "Beobachtung: $seen" }
+    } else { $action = $null }
+} while ($action)
+$reply
+```
+
+<div class="warn fragment" data-fragment-index="1">
+
+Der Befehl kommt vom Modell und läuft mit Ihren Rechten: deshalb die Rückfrage vor jeder Aktion.
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">PowerShell: Scripting für Experten</p>
+
+## Was Sie mitnehmen
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Skripte als **Module** mit sauberen Datentypen und eigenen **Klassen** bauen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Skripte mit **Git** versionieren, mit **Pester** testen und in einer **CI/CD-Pipeline** prüfen lassen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->**.NET-Typen** und C#-Code aus PowerShell nutzen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Texte und Tool-Ausgaben mit **regulären Ausdrücken** in Objekte verwandeln 
+- &shy;<!-- .element: class="fragment" data-fragment-index="5" -->Aufgaben mit **Jobs und Runspaces** parallelisieren und die passende Variante wählen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="6" -->Skripte **signieren**, Anmeldedaten sicher ablegen und **Remoting** gezielt einrichten 
+- &shy;<!-- .element: class="fragment" data-fragment-index="7" -->**Oberflächen** mit Windows Forms, WPF und Pode auf vorhandene Funktionen setzen
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">PowerShell: Scripting für Experten</p>
+
+## Ablauf
+
+<div class="numbered">
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**Refresher Grundlagen**: Skriptblöcke, Funktionen, Skripte, Module, Objekte und Datentypen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**Skripte professionell entwickeln**: Visual Studio Code, Git, Pester, CI/CD-Pipeline 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->**PowerShell und .NET**: statische Member, C# mit `Add-Type`, eigene Klassen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->**Reguläre Ausdrücke**: Muster schreiben, Text analysieren, Tools in Cmdlets umwandeln 
+- &shy;<!-- .element: class="fragment" data-fragment-index="5" -->**Parallelisieren von Aufgaben**: Jobs, ThreadJobs, Runspaces 
+- &shy;<!-- .element: class="fragment" data-fragment-index="6" -->**Sicherheit**: Zertifikate, Signaturen, Anmeldedaten, Sicherheitsarchitektur, Remoting 
+- &shy;<!-- .element: class="fragment" data-fragment-index="7" -->**Grafische Oberflächen**: Windows Forms, WPF, Pode 
+
+</div>
+</div>
+
+</script></section></section><section ><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="section-slide has-dark-background drop" data-background-color="#183b66" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="kicker">Teil I</p>
+
+# Refresher Grundlagen
+
+<div class="numeral">I</div>
+
+Skriptblöcke, Funktionen und Skripte, Module, Objekte und Datentypen, entlang der Stellen, an denen Skripte in der Praxis brechen.
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Themen dieses Teils
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**Skriptblöcke, Funktionen und Skripte**: Aufruf, Kultur bei der Typkonvertierung, Scope, `param`, `process`-Block, Advanced Functions, Skriptdateien 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**Module erstellen**: `.psm1`, Modul-Scope, Manifest, Exporte, Autoloading 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->**Objekte, Datentypen und Klassen**: Parsen mit Kulturangabe, Casts und Operatoren, Arrays, Hashtables, `[pscustomobject]`, Enums, Klassen benutzen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->**Fehlerbehandlung**: terminating und non-terminating, `-ErrorAction`, `try`/`catch`/`finally` 
+
+<div class="merk fragment" data-fragment-index="5">
+
+Kursstandard ist PowerShell 7.6. Wo sich Windows PowerShell 5.1 anders verhält, steht es auf der Folie.
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Skriptblock als Objekt
+
+```powershell
+$format = { param($Device, $Value) "$Device = $Value" }
+
+$format.GetType().Name                    # ScriptBlock
+& $format 'G-1042' 1234                   # G-1042 = 1234
+& $format -Value 1234 -Device 'G-1042'    # G-1042 = 1234
+
+$fromText = [scriptblock]::Create('param($a) $a * 2')
+& $fromText 21                            # 42
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`{ … }` ist ein Objekt: speichern, als Argument übergeben, später aufrufen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`&` bindet Parameter auch über den Namen, `Invoke-Command -ArgumentList` nur nach Position 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Die Blöcke von `if`, `for` und `foreach` sind keine Skriptblöcke und öffnen keinen Scope 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`[scriptblock]::Create()` parst Text: bei fremder Eingabe dasselbe Risiko wie `Invoke-Expression`
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Kultur bei Casts und Cmdlets
+
+```powershell
+[cultureinfo]::CurrentCulture = 'de-DE'
+[double]'1234,56'                 # Wert aus einer Messwertdatei
+([datetime]'03/04/2026').Month    # Cast
+(Get-Date '03/04/2026').Month     # Cmdlet
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```text
+123456
+3
+4
+```
+
+</div>
+
+<div class="merk fragment" data-fragment-index="2">
+
+Casts und Operatoren wandeln kulturinvariant um: Punkt als Dezimaltrennzeichen, Datum als `MM/dd/yyyy`. Kompilierte Cmdlets binden ihre Parameter mit der Kultur der Sitzung.
+
+</div>
+
+<div class="warn fragment" data-fragment-index="3">
+
+`[double]'1234,56'` meldet keinen Fehler: Das Komma gilt als Tausendertrennzeichen.
+
+</div>
+
+<div class="quelle fragment" data-fragment-index="4">
+
+Quelle: Microsoft Learn, about_Type_Conversion
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## `&` und Dot-Sourcing
+
+```powershell
+$limit = 100
+
+& { $limit = 200 }     # Aufrufoperator: neuer Scope
+$limit                 # 100
+
+. { $limit = 300 }     # Dot-Sourcing: aktueller Scope
+$limit                 # 300
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`&` führt Skriptblock, Funktion oder Skript in einem neuen Kind-Scope aus 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`. ` (Punkt, Leerzeichen) führt im aktuellen Scope aus: Definitionen bleiben 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`&` parst keinen Text: `& 'Get-Item logs'` sucht einen Befehl mit diesem Namen
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Scope beim Lesen und Schreiben
+
+```powershell
+$count = 0
+function Add-Count { $count++; "innen: $count" }
+
+"$(Add-Count), $(Add-Count), außen: $count"
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```text
+innen: 1, innen: 1, außen: 0
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Lesen sucht vom aktuellen Scope aufwärts bis zum globalen Scope 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Eine Zuweisung legt eine lokale Variable an, der Eltern-Scope bleibt unverändert 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`$script:count++` schreibt in den Skript-Scope, `$global:` in den globalen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="5" -->`$private:` verbirgt eine Variable vor Kind-Scopes 
+
+<div class="warn fragment" data-fragment-index="6">
+
+Eine nicht initialisierte Variable kann einen Wert aus dem Eltern-Scope erben. Setzen Sie Zähler und Sammelvariablen in Funktionen ausdrücklich auf einen Anfangswert.
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## `begin`, `process`, `end` und `clean`
+
+```powershell
+$sum = {
+    begin   { $total = 0 }
+    process { $total += $_ }
+    end     { "Summe: $total" }
+}
+1236, 1239, 1241 | & $sum       # Summe: 3716
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`begin`: einmal vor dem ersten Objekt 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`process`: einmal je Pipeline-Objekt, das aktuelle Objekt steht in `$_` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`end`: einmal nach dem letzten Objekt 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`clean` (ab 7.3): läuft zum Schluss immer, auch nach einem Fehler 
+
+<div class="warn fragment" data-fragment-index="5">
+
+In 5.1: `clean` ist ein Parserfehler. Aufräumen gehört dort in `try`/`finally`.
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Pipeline-Eingabe ohne `process`-Block
+
+```powershell
+function Show-Device {
+    param([Parameter(ValueFromPipeline)][string]$DeviceId)
+    "Prüfe $DeviceId"
+}
+
+'G-1001', 'G-1002', 'G-1003' | Show-Device
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```text
+Prüfe G-1003
+```
+
+</div>
+
+<div class="warn fragment" data-fragment-index="2">
+
+Ohne `process`-Block läuft der Rumpf einmal, als `end`-Block. Der Parameter enthält dann das letzte Objekt, eine Fehlermeldung gibt es nicht.
+
+</div>
+
+<div class="fragment" data-fragment-index="3">
+
+```powershell
+    process { "Prüfe $DeviceId" }    # drei Zeilen, eine je Gerät
+```
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## `Invoke()` und `InvokeReturnAsIs()`
+
+```powershell
+$pair = { 1, 2 }
+
+$pair.Invoke().GetType().Name             # Collection`1
+$pair.InvokeReturnAsIs().GetType().Name   # Object[]
+(& $pair).GetType().Name                  # Object[]
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`Invoke()` liefert immer eine `Collection<PSObject>`, auch bei einem einzelnen Wert 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`InvokeReturnAsIs()` gibt das Ergebnis unverpackt zurück 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Im Skript ist `& $block` der normale Weg; die Methoden begegnen Ihnen in Klassen und bei Aufrufen aus .NET
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## `GetNewClosure()`
+
+```powershell
+$threshold = 1000
+$isHigh = { param($value) $value -gt $threshold }.GetNewClosure()
+
+$threshold = 2000
+& $isHigh 1500                                    # True
+& { param($value) $value -gt $threshold } 1500    # False
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Die Closure kopiert die lokalen Variablen im Moment von `GetNewClosure()` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Hashtables und Listen bleiben Referenzen: Änderungen am Objekt sind sichtbar 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Typischer Einsatz: Skriptblöcke aus einer Schleife mit je eigenem Wert 
+
+<div class="warn fragment" data-fragment-index="4">
+
+Die Closure hängt an einem dynamischen Modul. Eine Funktion aus dem Skript-Scope findet sie nicht (`CommandNotFoundException`), eine global definierte schon.
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Delay-Bind-Skriptblöcke
+
+```powershell
+Get-ChildItem .\messwerte\*.csv |
+    Rename-Item -NewName { $_.BaseName + '.alt' } -WhatIf
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Der Skriptblock läuft je Pipeline-Objekt, `$_` ist das aktuelle Objekt 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Der Parameter nimmt Pipeline-Eingabe an und ist weder `[scriptblock]` noch `[object]` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Der Parametername steht ausdrücklich im Aufruf 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Ohne Pipeline-Eingabe: Fehler `ScriptBlockArgumentNoInput` 
+
+<div class="quelle fragment" data-fragment-index="5">
+
+Quelle: Microsoft Learn, about_Script_Blocks
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## `return`, `break` und `continue` in `ForEach-Object`
+
+```powershell
+1..3 | ForEach-Object { if ($_ -eq 2) { return }; $_ }
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```text
+1
+3
+```
+
+</div>
+
+<div class="fragment" data-fragment-index="2">
+
+```powershell
+foreach ($site in 'Nord', 'Sued') {
+    1..3 | ForEach-Object { if ($_ -eq 2) { continue }; "$site $_" }
+}
+```
+
+</div>
+
+<div class="fragment" data-fragment-index="3">
+
+```text
+Nord 1
+Sued 1
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Der Rumpf ist ein Skriptblock: `return` beendet ihn für das aktuelle Objekt 
+- &shy;<!-- .element: class="fragment" data-fragment-index="5" -->`break` und `continue` wirken auf die umgebende Schleife und beenden die Pipeline 
+- &shy;<!-- .element: class="fragment" data-fragment-index="6" -->Ohne umgebende Schleife endet das ganze Skript
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## `return` und Ausgabe
+
+```powershell
+function Get-Sum {
+    param([double[]]$Value)
+    'Starte Berechnung'
+    $sum = ($Value | Measure-Object -Sum).Sum
+    return $sum
+}
+$result = Get-Sum -Value 1234, 1236
+$result.Count
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```text
+2
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Jede Anweisung mit Ausgabe landet im Ergebnis, `return` beendet nur 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Statusmeldungen gehören nach `Write-Verbose` oder `Write-Information` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Ungewollte Ausgabe verwerfen: `$null = …` oder `[void]…` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="5" -->In Klassenmethoden zählt nur, was hinter `return` steht
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Einfache und Advanced Functions
+
+```powershell
+function Get-Reading {
+    [CmdletBinding()]
+    param([string]$DeviceId)
+
+    Write-Verbose "Lese $DeviceId"
+    "Gerät $DeviceId"
+}
+
+Get-Reading G-1042 -Verbose
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`[CmdletBinding()]` oder ein `[Parameter()]`-Attribut macht die Funktion zur Advanced Function 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Dazu kommen die Common Parameters (`-Verbose`, `-ErrorAction`, …) und `$PSCmdlet` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Überzählige Argumente sind ein Fehler, `$args` gibt es nicht mehr 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Ein Array für einen `[string]`-Parameter wird abgelehnt statt still verbunden
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Parameter-Attribute
+
+```powershell
+function Get-Reading {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory, Position = 0)]
+        [Alias('Id')]
+        [string]$DeviceId,
+
+        [Parameter(Position = 1)]
+        [int]$Last = 4
+    )
+    "$DeviceId, letzte $Last Werte"
+}
+Get-Reading G-1042 8          # G-1042, letzte 8 Werte
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`Mandatory`: Fehlt der Wert, fragt PowerShell an der Konsole nach 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`Position`: Aufruf ohne Parameternamen in fester Reihenfolge 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`[Alias()]`: zweiter Name, gilt auch für die Bindung aus der Pipeline
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Validierungsattribute
+
+```powershell
+param(
+    [ValidatePattern('^G-\d{4}$')]
+    [string]$DeviceId,
+    [ValidateSet('OK', 'Ersatzwert', 'Gestoert')]
+    [string]$Status = 'OK',
+    [ValidateRange(1, 96)]
+    [int]$Last = 4,
+    [ValidateScript({ Test-Path $_ })]
+    [string]$Path
+)
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Die Prüfung läuft bei der Parameterbindung, vor der ersten Zeile des Rumpfs 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`ValidateSet` liefert zusätzlich die Tab-Vervollständigung 
+
+<div class="warn fragment" data-fragment-index="3">
+
+Die Attribute prüfen jede Zuweisung an die Variable, auch im Rumpf: `$Status = 'Unbekannt'` wirft dort einen Fehler. In 5.1 kennt `ValidateScript` kein `ErrorMessage` (erst ab PowerShell 6).
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Pipeline-Eingabe by value und by property name
+
+```powershell
+function Get-LogInfo {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory, ValueFromPipeline,
+                   ValueFromPipelineByPropertyName)]
+        [Alias('FullName')]
+        [string[]]$Path
+    )
+    process {
+        foreach ($item in $Path) { "Lese $item" }
+    }
+}
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**By value**: das ganze Objekt, wenn sein Typ zum Parameter passt 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**By property name**: die Eigenschaft, die heißt wie der Parameter oder einer seiner Aliase 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`foreach` im `process`-Block deckt auch den Aufruf `-Path a.log, b.log` ab
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## `ShouldProcess` für `-WhatIf` und `-Confirm`
+
+```powershell
+function Remove-OldLog {
+    [CmdletBinding(SupportsShouldProcess)]
+    param([Parameter(Mandatory)][string]$Path)
+
+    foreach ($file in Get-ChildItem -Path $Path -Filter *.log) {
+        if ($PSCmdlet.ShouldProcess($file.Name, 'Löschen')) {
+            Remove-Item -Path $file.FullName
+        }
+    }
+}
+Remove-OldLog -Path .\archiv -WhatIf
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```text
+What if: Performing the operation "Löschen" on target "import-service_2026-11-20.log".
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`SupportsShouldProcess` ergänzt die Parameter `-WhatIf` und `-Confirm` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`ShouldProcess()` liefert bei `-WhatIf` `$false` und schreibt die Meldung
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## `ConfirmImpact` und Weitergabe von `-WhatIf`
+
+| Einstellung | Standard | Bedeutung |
+|---|---|---|
+| `ConfirmImpact` der Funktion | `Medium` | Einstufung des Eingriffs |
+| `$ConfirmPreference` der Sitzung | `High` | Schwelle für die Rückfrage |
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Rückfrage ohne `-Confirm` erst, wenn `ConfirmImpact` die Schwelle erreicht 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->In der Funktion: `-WhatIf` setzt `$WhatIfPreference`, `-Confirm` senkt `$ConfirmPreference` auf `Low` 
+
+<div class="fragment" data-fragment-index="3">
+
+```powershell
+Remove-Item -Path $file.FullName -WhatIf:$WhatIfPreference
+```
+
+</div>
+
+<div class="warn fragment" data-fragment-index="4">
+
+Ruft ein Skript oder ein Modul eine Funktion aus einem anderen Skriptmodul auf, kommen `$WhatIfPreference` und `$ConfirmPreference` dort nicht an. Reichen Sie `-WhatIf` ausdrücklich weiter.
+
+</div>
+
+<div class="quelle fragment" data-fragment-index="5">
+
+Quelle: Microsoft Learn, Everything you wanted to know about ShouldProcess
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Skriptdatei mit `param` und `[CmdletBinding()]`
+
+```powershell
+#Requires -Version 5.1
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory)][string]$Path,
+    [int]$Interval = 15
+)
+Write-Verbose "Lese $Path"
+"Intervall: $Interval"
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`param` ist die erste Anweisung: Davor stehen nur Kommentare, `#Requires` und `using`-Anweisungen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`[CmdletBinding()]` gibt dem Skript die Common Parameters wie `-Verbose` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Start mit Pfad: `.\report.ps1 -Path .\messwerte -Verbose` 
+
+<div class="merk fragment" data-fragment-index="4">
+
+Unter Windows entscheidet die Ausführungsrichtlinie, ob eine Skriptdatei startet. Eingetippte Befehle betrifft sie nicht.
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## `#Requires`
+
+```powershell
+#Requires -Version 7.4
+#Requires -PSEdition Core
+#Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.5' }
+#Requires -RunAsAdministrator
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Gilt für das ganze Skript und wird vor dem Start geprüft, egal in welcher Zeile 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Nicht erfüllt: Das Skript läuft nicht an (etwa `ScriptRequiresUnmatchedPSVersion`) 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`-PSEdition`: `Desktop` ist Windows PowerShell 5.1, `Core` ist PowerShell 6 und neuer 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`RequiredVersion` vergleicht exakt: `'0.12'` passt nicht auf `'0.12.0'` 
+
+<div class="quelle fragment" data-fragment-index="5">
+
+Quelle: Microsoft Learn, about_Requires
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## `$PSScriptRoot` und `$PSCommandPath`
+
+```powershell
+# tools\helper.ps1
+function Get-ConfigPath {
+    Join-Path $PSScriptRoot 'settings.json'
+}
+
+# main.ps1
+. "$PSScriptRoot\tools\helper.ps1"
+Get-ConfigPath                # …\tools\settings.json
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`$PSScriptRoot`: Ordner der Datei, in der der Code steht 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`$PSCommandPath`: voller Pfad dieser Datei 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Beide hängen nicht vom aktuellen Verzeichnis ab 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`$MyInvocation.PSScriptRoot`: Ordner der aufrufenden Datei
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## `exit` und `$LASTEXITCODE`
+
+| | `return` | `exit` |
+|---|---|---|
+| verlässt | Funktion, Skript oder Skriptblock | das Skript; an der Konsole die Sitzung |
+| Wert | geht in die Ausgabe | Exitcode in `$LASTEXITCODE` |
+
+<div class="fragment" data-fragment-index="1">
+
+```powershell
+# check.ps1:  'vor exit'; exit 3; 'nie erreicht'
+& .\check.ps1
+"weiter, Exitcode $LASTEXITCODE"       # weiter, Exitcode 3
+pwsh -NoProfile -File .\check.ps1      # Prozess endet mit Code 3
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Ein mit `&` gestartetes Skript mit `exit` beendet den Aufrufer nicht 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Ohne `exit` liefert `pwsh -File` 0 bei Erfolg und 1 bei einer unbehandelten Ausnahme 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`finally` läuft auch bei `exit`
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Skriptmodul mit `.psm1` und `Export-ModuleMember`
+
+```powershell
+# LogTools\LogTools.psm1
+function Get-LogEntry       { <# … #> }
+function Get-LogSummary     { <# … #> }
+function ConvertTo-LogLevel { <# Hilfsfunktion #> }
+
+Export-ModuleMember -Function Get-LogEntry, Get-LogSummary
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```powershell
+Import-Module .\LogTools\LogTools.psm1
+Get-Command -Module LogTools        # Get-LogEntry, Get-LogSummary
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`Export-ModuleMember` legt die öffentliche Schnittstelle fest 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Ohne den Aufruf exportiert ein `.psm1` alle Funktionen und Aliase, aber keine Variablen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Nach einer Änderung lädt `Import-Module -Force` das Modul neu
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Modul-Scope
+
+<img src="figs/ps-modul-scope.png" alt="" style="object-fit: scale-down">
+
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Modulfunktionen laufen im Session-State des Moduls 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Dieser hängt am globalen Scope, neben der Scope-Kette des Aufrufers 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`$script:` im Modul hält Zustand über mehrere Aufrufe hinweg
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Variablen des Aufrufers im Modul
+
+```powershell
+# ScopeSample.psm1
+function Get-Limit { "Modul sieht Limit = [$Limit]" }
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```powershell
+function Invoke-Check { $Limit = 555; Get-Limit }
+Invoke-Check           # Modul sieht Limit = []
+
+$global:Limit = 100
+Get-Limit              # Modul sieht Limit = [100]
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Lokale Variablen des Aufrufers sieht das Modul nicht, globale schon 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Was die Funktion braucht, kommt über Parameter herein 
+
+<div class="warn fragment" data-fragment-index="4">
+
+Auch ein im aufrufenden Skript gesetztes `$ErrorActionPreference` gilt in der Modulfunktion nicht. Im Modul wirkt der globale Wert oder ein `-ErrorAction` am Aufruf.
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Aufbau mit `Public\` und `Private\`
+
+<div class="columns">
+
+<div class="column" style="width: 38%">
+
+```text
+LogTools\
+  LogTools.psd1
+  LogTools.psm1
+  Public\
+    Get-LogEntry.ps1
+    Get-LogSummary.ps1
+  Private\
+    ConvertTo-LogLevel.ps1
+```
+
+</div>
+
+<div class="column" style="width: 62%">
+
+```powershell
+$public  = @(Get-ChildItem "$PSScriptRoot\Public\*.ps1")
+$private = @(Get-ChildItem "$PSScriptRoot\Private\*.ps1")
+
+foreach ($file in $public + $private) {
+    . $file.FullName
+}
+
+Export-ModuleMember -Function $public.BaseName
+```
+
+</div>
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Eine Datei je Funktion, der Dateiname ist der Funktionsname 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Dot-Sourcing im `.psm1` lädt alle Funktionen in den Scope des Moduls 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Exportiert wird, was in `Public\` liegt
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Manifest mit `New-ModuleManifest`
+
+```powershell
+$manifest = @{
+    Path                 = '.\LogTools\LogTools.psd1'
+    RootModule           = 'LogTools.psm1'
+    ModuleVersion        = '0.1.0'
+    FunctionsToExport    = 'Get-LogEntry', 'Get-LogSummary'
+    PowerShellVersion    = '5.1'
+    CompatiblePSEditions = 'Desktop', 'Core'
+}
+New-ModuleManifest @manifest
+Test-ModuleManifest .\LogTools\LogTools.psd1
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`RootModule`: das `.psm1`, das beim Import geladen wird 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`PowerShellVersion`: Mindestversion für den Import 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`CompatiblePSEditions`: `Desktop` für 5.1, `Core` ab 6; bei eigenen Modulen nicht ausgewertet 
+
+<div class="quelle fragment" data-fragment-index="4">
+
+Quelle: Microsoft Learn, about_Module_Manifests und about_PowerShell_Editions
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## `FunctionsToExport`
+
+| Wert im Manifest | Ergebnis nach `Import-Module` |
+|---|---|
+| `'*'` | alle Funktionen, die das `.psm1` exportiert |
+| `@()` | keine einzige Funktion, ohne Fehlermeldung |
+| `'Get-LogEntry', 'Get-LogSummary'` | diese beiden, sofern das `.psm1` sie exportiert |
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Ohne `-FunctionsToExport` schreibt `New-ModuleManifest` den Wert `'*'`, in 5.1 wie in 7.x 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`@()` entsteht durch Vorlagen, Generatoren oder Handarbeit 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`.psm1` und Manifest filtern nacheinander: Das Manifest kann nur einschränken 
+
+<div class="tipp fragment" data-fragment-index="4">
+
+Tragen Sie die Funktionen ausdrücklich ein, ohne Platzhalter. Das empfiehlt Microsoft für Ladezeit und Auffindbarkeit der Befehle.
+
+</div>
+
+<div class="quelle fragment" data-fragment-index="5">
+
+Quelle: Microsoft Learn, New-ModuleManifest und about_Module_Manifests
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Autoloading und `$PSModulePath`
+
+| Ablage | Windows PowerShell 5.1 | PowerShell 7.x |
+|---|---|---|
+| Benutzer (`Dokumente`) | `WindowsPowerShell\Modules` | `PowerShell\Modules` |
+| Alle Benutzer (`$env:ProgramFiles`) | `WindowsPowerShell\Modules` | `PowerShell\Modules` |
+| Mitgeliefert | `$PSHOME\Modules` | `$PSHOME\Modules` |
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Autoloading: Der erste Aufruf eines Befehls lädt das Modul, wenn es in `$env:PSModulePath` liegt 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Der Ordner heißt wie das Modul: `Modules\LogTools\LogTools.psd1` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->PowerShell 7 übernimmt unter Windows auch die rechnerweiten Modulpfade von 5.1, umgekehrt gilt das nicht 
+
+<div class="quelle fragment" data-fragment-index="4">
+
+Quelle: Microsoft Learn, about_PSModulePath
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Autoloading und `FunctionsToExport`
+
+```powershell
+# neue Sitzung, LogTools im Modulpfad, kein Import-Module
+Get-Command Get-LogEntry
+```
+
+| `FunctionsToExport` | nach `Import-Module` | neue Sitzung ohne `Import-Module` |
+|---|---|---|
+| `'*'` | 2 Befehle | `CommandNotFoundException` |
+| `'Get-LogEntry', 'Get-LogSummary'` | 2 Befehle | Befehl gefunden, Quelle `LogTools` |
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Gilt für ein `.psm1`, das seine Funktionen per Dot-Sourcing aus `Public\` lädt 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Die Befehlssuche wertet Manifest und `.psm1` aus, ohne das `.psm1` auszuführen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Mit `'*'` stehen die Namen erst fest, wenn die Schleife über `Public\` gelaufen ist 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Mit eingetragenen Namen findet PowerShell den Befehl, der erste Aufruf lädt das Modul
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Zahlen und Zeitstempel mit Kulturangabe parsen
+
+```powershell
+$de = [cultureinfo]::GetCultureInfo('de-DE')
+
+$value = [double]::Parse('1234,56', 'Float', $de)
+$time  = [datetime]::ParseExact('23.11.2026 00:15',
+             'dd.MM.yyyy HH:mm', [cultureinfo]::InvariantCulture)
+$value -gt 1000           # True
+$time.ToString('s')       # 2026-11-23T00:15:00
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Kultur und Format stehen im Aufruf: Das Ergebnis hängt nicht von Rechner und Sitzung ab 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`[double]::Parse('1234.56', $de)` ergibt 123456: In `de-DE` ist der Punkt das Tausendertrennzeichen. Mit `'Float'` wird daraus ein Fehler 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Ein `[datetime]`- oder `[double]`-Parameter einer eigenen Funktion wandelt Text wie ein Cast um
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Casts und Rundung
+
+```powershell
+[int]'42'            # 42
+[int]2.5             # 2       zur geraden Zahl gerundet
+[int]3.5             # 4
+[int]'abc'           # Fehler: InvalidCastFromStringToInteger
+'abc' -as [int]      # $null, kein Fehler
+[bool]'False'        # True    jeder nicht leere Text
+[double]''           # 0       ein leeres Feld wird zur Zahl
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Ein Cast vor dem Wert wandelt einmal um; `[int]$count = '42'` bindet den Typ an die Variable 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Kaufmännisch runden: `[math]::Round(2.5, [MidpointRounding]::AwayFromZero)` ergibt 3 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`7 / 2` ergibt einen `[double]`, ebenso `[int]::MaxValue + 1`
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## `$null` in Größenvergleichen
+
+```powershell
+$value = $null          # ein Feld ohne Wert
+$value -lt 0
+$value -gt 0
+$value -eq 0
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```text
+True
+False
+False
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`$null` gilt im Vergleich als kleiner als 0, eine Fehlermeldung gibt es nicht 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Eine Prüfung auf negative Werte trifft deshalb auch fehlende Werte 
+
+<div class="fragment" data-fragment-index="4">
+
+```powershell
+if     ($null -eq $value) { 'Wert fehlt' }
+elseif ($value -lt 0)     { 'Wert negativ' }
+```
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Typkonvertierung bei Operatoren
+
+<div class="columns">
+
+<div class="column" style="width: 50%">
+
+```powershell
+'5' + 3
+5 + '3'
+'10' * 2
+'9' -gt 10
+9 -gt '10'
+```
+
+</div>
+
+<div class="column" style="width: 50%">
+
+<div class="fragment" data-fragment-index="1">
+
+```text
+53      Verkettung
+8       Addition
+1010    Wiederholung
+True    Vergleich als Text
+False   Vergleich als Zahl
+```
+
+</div>
+
+</div>
+
+</div>
+
+<div class="merk fragment" data-fragment-index="2">
+
+Der linke Operand bestimmt die Operation. Der rechte wird in dessen Typ umgewandelt.
+
+</div>
+
+<div class="fragment" data-fragment-index="3">
+
+```powershell
+$row = "Geraet;Wert`nG-1042;120" | ConvertFrom-Csv -Delimiter ';'
+$row.Wert + 5            # 1205
+$row.Wert -gt 99         # False
+[int]$row.Wert + 5       # 125
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`Import-Csv` und `ConvertFrom-Csv` liefern jede Spalte als `[string]`
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Arrays, `@()` und Entrollen
+
+```powershell
+$files = Get-ChildItem .\messwerte\*.csv      # eine Datei im Ordner
+$files.GetType().Name                         # FileInfo
+@($files).GetType().Name                      # Object[]
+
+function Get-Device { return @('G-1001') }
+(Get-Device).GetType().Name                   # String
+@(Get-Device).Count                           # 1
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Je nach Trefferzahl liefert ein Befehl nichts, ein Objekt oder ein Array; `@()` macht daraus immer ein Array 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Funktionen entrollen Arrays; `return ,$array` hält ein Array zusammen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`$a[0..-2]` läuft rückwärts herum: Auf `0..9` liefert es `0, 9, 8`
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Arrays, `+=` und `List[T]`
+
+```powershell
+$values = @()
+foreach ($i in 1..10000) { $values += $i }      # kopiert jedes Mal
+$values = foreach ($i in 1..10000) { $i }       # Ausgabe zuweisen
+$list = [System.Collections.Generic.List[double]]::new()
+$list.Add(1234.56)                              # wächst ohne Kopie
+```
+
+<div class="fragment" data-fragment-index="1">
+
+| 10 000 Elemente | `+=` | Ausgabe zuweisen |
+|---|---|---|
+| Windows PowerShell 5.1 | 1141 bis 1500 ms | 3 bis 4 ms |
+| PowerShell 7.6.9 | 40 bis 52 ms | 1 ms |
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Arrays haben eine feste Größe: `+=` legt ein neues an und kopiert alles 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->PowerShell 7.5 hat `+=` beschleunigt, die Ausgabe zuzuweisen bleibt in beiden Versionen am schnellsten 
+
+<div class="quelle fragment" data-fragment-index="4">
+
+Messung: eigene Läufe in einer virtuellen Maschine mit Windows 11, November 2026
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Hashtables und `[ordered]`
+
+```powershell
+$devices = [ordered]@{ Nord = 15; Sued = 12; West = 9; Ost = 14 }
+$devices.Keys -join ', '          # Nord, Sued, West, Ost
+
+$status = @{ 'G-1042' = 0 }
+if ($status['G-1042']) { 'vorhanden' } else { 'fehlt' }
+$status.ContainsKey('G-1042')
+```
+
+<div class="fragment" data-fragment-index="1">
+
+Die `if`-Zeile meldet `fehlt`, `ContainsKey()` liefert `True`.
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Die Reihenfolge einer Hashtable ist nicht festgelegt, `[ordered]` behält die Einfügereihenfolge 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`[ordered]` steht direkt vor dem Literal `@{}`; ein Cast nach `[hashtable]` verliert die Reihenfolge 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`ContainsKey()` prüft den Schlüssel; die Werte `0`, `''` und `$false` zählen in `if` als nicht vorhanden
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## `[pscustomobject]`
+
+```powershell
+$reading = [pscustomobject]@{
+    DeviceId = 'G-1042'
+    Value    = 1234.56
+    Status   = 'OK'
+}
+$reading.psobject.Properties.Name    # DeviceId, Value, Status
+$reading.Status = 'Ersatzwert'       # ändern geht
+$reading.Unit   = 'kWh'              # Fehler: Eigenschaft fehlt
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Die Eigenschaften behalten die Reihenfolge des Literals 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Neue Eigenschaften kommen über `Add-Member` dazu 
+
+<div class="warn fragment" data-fragment-index="3">
+
+In 5.1: `[pscustomobject]` hat kein `Count` (liefert `$null`), in 7.x ist es 1. In beiden Versionen zählt `@($result).Count`.
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## `$null` in Vergleichen
+
+```powershell
+$readings = @(1234.56, $null, 1239.10)
+@($readings -eq $null).Count       # 1: gefiltert, nicht verglichen
+$null -eq $readings                # False: echter Vergleich
+
+$empty = @()
+if ($empty -eq $null) { 'leer' } else { 'nicht erkannt' }
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Steht links eine Collection, filtert der Operator: `$null` gehört nach links 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Leere Ergebnisse erkennen Sie an der Anzahl: `@($result).Count -eq 0` 
+
+<div class="fragment" data-fragment-index="3">
+
+```powershell
+@($empty).Count -eq 0              # True
+```
+
+</div>
+
+<div class="warn fragment" data-fragment-index="4">
+
+In 5.1 fehlen `?.`, `??` und `??=`. Code für beide Versionen kommt ohne diese Operatoren aus.
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Enums
+
+```powershell
+enum LogLevel { Info; Warn; Error }
+
+[LogLevel]'Warn'                          # Warn
+[int][LogLevel]::Error                    # 2
+[LogLevel]::Warn -lt [LogLevel]::Error    # True
+function Write-ImportLog {
+    param([LogLevel]$Level, [string]$Message)
+    '[{0,-5}] {1}' -f "$Level".ToUpper(), $Message
+}
+Write-ImportLog -Level Warn -Message 'Wert fehlt: Geraet=G-1042'
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Ein Enum-Parameter nimmt Label, Zahl oder Enum-Wert an 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Ohne Wertangabe hat das erste Label den Wert 0, jedes weitere eins mehr 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`[Flags()]` braucht Zweierpotenzen; prüfen mit `HasFlag()` oder `-band` 
+
+<div class="warn fragment" data-fragment-index="4">
+
+In 5.1 ist der Basistyp immer `Int32`. `enum Name : long { … }` gibt es ab PowerShell 6.2.
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Klassen lesen
+
+```powershell
+enum LogLevel { Info; Warn; Error }
+
+class LogEntry {
+    [datetime]$Timestamp
+    [LogLevel]$Level
+    [string]$Message
+
+    LogEntry([string]$line) {
+        $this.Timestamp = [datetime]$line.Substring(0, 19)
+        $this.Level     = [LogLevel]$line.Substring(25, 5).Trim()
+        $this.Message   = $line.Substring(32)
+    }
+    [bool] IsProblem() { return $this.Level -ge [LogLevel]::Warn }
+}
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Eigenschaften mit Typ: Jede Zuweisung wird umgewandelt oder abgelehnt 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Der Konstruktor heißt wie die Klasse, `$this` ist die Instanz 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Methoden nennen ihren Rückgabetyp und liefern nur, was hinter `return` steht
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Klassen benutzen
+
+```powershell
+$line  = '2026-11-23 00:15:03,949 [WARN ] Wert fehlt: Geraet=G-1042'
+$entry = [LogEntry]::new($line)       # Konstruktor aufrufen
+
+$entry.Level                          # Warn
+$entry.IsProblem()                    # True
+$entry.Level = 'Error'                # Text wird zu LogLevel
+$entry | Get-Member -MemberType Property
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```text
+   TypeName: LogEntry
+
+Name      MemberType Definition
+----      ---------- ----------
+Level     Property   LogLevel Level {get;set;}
+Message   Property   string Message {get;set;}
+Timestamp Property   datetime Timestamp {get;set;}
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`Get-Member` zeigt Eigenschaften und Methoden mit Typ und Signatur 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`[LogEntry]::new` ohne Klammern listet die Überladungen des Konstruktors
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Fehlerarten
+
+| Art | Beispiel | Danach | `catch` |
+|---|---|---|---|
+| non-terminating | `Write-Error`, die meisten Cmdlet-Fehler | nächstes Objekt | nein |
+| statement-terminating | `1/0`, `[int]'abc'` | nächste Anweisung | ja |
+| script-terminating | `throw`, `-ErrorAction Stop` | Abbruch des Skripts | ja |
+
+<div class="fragment" data-fragment-index="1">
+
+```powershell
+Get-Item .\messwerte\fehlt.csv, .\messwerte\Nord_2026-11-23.csv
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Der Fehler für die erste Datei wird gemeldet, die zweite Datei kommt trotzdem 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Fehler stehen zusätzlich in `$Error`, der neueste in `$Error[0]`
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## `-ErrorAction` und `$ErrorActionPreference`
+
+| | `-ErrorAction` | `$ErrorActionPreference` |
+|---|---|---|
+| gilt für | einen Aufruf | den Scope und seine Kind-Scopes |
+| non-terminating | ja | ja |
+| statement-terminating | nein | ja |
+
+<div class="fragment" data-fragment-index="1">
+
+```powershell
+& {
+    $ErrorActionPreference = 'SilentlyContinue'
+    1/0                    # statement-terminating, unterdrückt
+    'läuft weiter'
+}
+```
+
+</div>
+
+<div class="warn fragment" data-fragment-index="2">
+
+An einer Advanced Function setzt `-ErrorAction` ein lokales `$ErrorActionPreference`. `-ErrorAction SilentlyContinue` schluckt dort auch ein `throw` im Rumpf.
+
+</div>
+
+<div class="quelle fragment" data-fragment-index="3">
+
+Quelle: Microsoft Learn, about_Preference_Variables und about_Throw
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## `try`, `catch`, `finally`
+
+```powershell
+$path = '.\messwerte\Nord_2026-11-22.csv'      # fehlt
+try {
+    $text = Get-Content $path -ErrorAction Stop
+}
+catch [System.Management.Automation.ItemNotFoundException] {
+    Write-Warning "Datei fehlt: $($_.TargetObject)"
+}
+catch {
+    Write-Warning "Unerwartet: $($_.Exception.Message)"
+}
+finally {
+    'läuft immer'
+}
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Ohne `-ErrorAction Stop` läuft `try` weiter, `catch` bleibt unberührt 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Im `catch` ist `$_` der `ErrorRecord`: `Exception`, `CategoryInfo`, `InvocationInfo` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Spezifische Typen vor dem allgemeinen `catch`; `finally` läuft auch bei `exit`
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil I · Refresher Grundlagen</p>
+
+## Was Sie jetzt können
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Skriptblöcke im eigenen oder im aktuellen Scope aufrufen und Pipeline-Eingabe verarbeiten 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Advanced Functions mit validierten Parametern, Pipeline-Bindung und `-WhatIf` schreiben 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Skriptdateien mit `param`, `#Requires` und eindeutigem Exitcode aufbauen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Funktionen zu einem Modul mit Manifest und ausdrücklicher Exportliste zusammenfügen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="5" -->Typkonvertierung, Kultur und `$null` in Vergleichen und Berechnungen kontrollieren 
+- &shy;<!-- .element: class="fragment" data-fragment-index="6" -->Arrays, Hashtables, `[pscustomobject]`, Enums und vorhandene Klassen einsetzen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="7" -->Fehler so behandeln, dass `try`/`catch` greift
+</div>
+
+</script></section></section><section ><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="title-slide drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="kicker">PowerShell: Scripting für Experten</p>
+
+# Vielen Dank
+
+<p class="subtitle">Fragen, Rückmeldungen, nächste Schritte</p>
+
+<p class="byline"><span class="author">Dr.-Ing. Grigory Devadze</span></p>
+</div></script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Abschluss</p>
+
+## Quellen
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**Microsoft Learn**: PowerShell-Dokumentation, `about_`-Themen und Cmdlet-Referenz für PowerShell 7.6 und Windows PowerShell 5.1, <a href="https://learn.microsoft.com/powershell/" target="_blank" rel="noopener">learn.microsoft.com/powershell</a> 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**Microsoft Learn**: .NET-Dokumentation zu regulären Ausdrücken und zur Klassenbibliothek, <a href="https://learn.microsoft.com/dotnet/" target="_blank" rel="noopener">learn.microsoft.com/dotnet</a> 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->**Pester**: Dokumentation zu Pester 5, <a href="https://pester.dev" target="_blank" rel="noopener">pester.dev</a> 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->**GitLab**: Dokumentation zu CI/CD, <a href="https://docs.gitlab.com" target="_blank" rel="noopener">docs.gitlab.com</a> 
+- &shy;<!-- .element: class="fragment" data-fragment-index="5" -->**Pode**: Dokumentation zu Pode und Pode.Web, <a href="https://badgerati.github.io/Pode/" target="_blank" rel="noopener">badgerati.github.io/Pode</a> 
+- &shy;<!-- .element: class="fragment" data-fragment-index="6" -->**Yao et al.**: ReAct: Synergizing Reasoning and Acting in Language Models, <a href="https://arxiv.org/abs/2210.03629" target="_blank" rel="noopener">arxiv.org/abs/2210.03629</a> 
+- &shy;<!-- .element: class="fragment" data-fragment-index="7" -->**Claude Code** und **GitHub Copilot CLI**: Dokumentation zu Werkzeugen, Freigaben und Installation, <a href="https://code.claude.com/docs" target="_blank" rel="noopener">code.claude.com/docs</a>, <a href="https://docs.github.com/copilot" target="_blank" rel="noopener">docs.github.com/copilot</a>
+</div></script></section></section></div>
+    </div>
+
+    <script src="dist/reveal.js"></script>
+    <script src="plugin/markdown/markdown.js"></script>
+    <script src="plugin/obsidian-markdown.js"></script>
+    <script src="plugin/highlight/highlight.js"></script>
+
+    <script src="plugin/zoom/zoom.js"></script>
+    <script src="plugin/math/math.js"></script>
+    <script src="plugin/customcontrols/plugin.js"></script>
+
+
+    <script>
+        function extend() {
+            const target = {};
+            for (let i = 0; i < arguments.length; i++) {
+                const source = arguments[i];
+                for (const key in source) {
+                    if (source.hasOwnProperty(key)) {
+                        target[key] = source[key];
+                    }
+                }
+            }
+            return target;
+        }
+
+        function isLight(color) {
+            // normalize to rgb(a)
+            const optionEl = document.createElement("option");
+            optionEl.style.color = color;
+            const normalizedColor = optionEl.style.color;
+
+            const match = normalizedColor.match(/(\d+), (\d+), (\d+)/);
+            if (!match) return false;
+            const [, c_r, c_g, c_b] = match;
+
+            const brightness = ((c_r * 299) + (c_g * 587) + (c_b * 114)) / 1000;
+            return brightness > 155;
+        }
+
+        const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--r-background-color').trim();
+
+        if (isLight(bgColor)) {
+            document.body.classList.add('has-light-background');
+        } else {
+            document.body.classList.add('has-dark-background');
+        }
+
+        // default options to init reveal.js
+        const defaultOptions = {
+            controls: true,
+            progress: true,
+            history: true,
+            center: true,
+            transition: 'default', // none/fade/slide/convex/concave/zoom
+            plugins: [
+                ObsidianMarkdown,
+                RevealHighlight,
+                RevealZoom,
+                RevealMath.KaTeX,
+                RevealCustomControls,
+            ],
+            allottedTime: "120",
+
+            katex: {
+                local: 'plugin/math/katex',
+                extensions: ["mhchem"],
+            },
+            markdown: {
+                gfm: true,
+            },
+            mermaid: {
+                theme: isLight(bgColor) ? 'default' : 'dark',
+            },
+            customcontrols: {
+                controls: [
+                ]
+            },
+        };
+
+        if ( pageInIframe() ) {
+            defaultOptions.scrollActivationWidth = 5;
+        }
+
+        // options from URL query string
+        const queryOptions = Reveal().getQueryHash() || {};
+
+        const options = extend(defaultOptions, {"controls":true,"progress":true,"slideNumber":"c","center":false,"transition":"slide","transitionSpeed":"default","width":1280,"height":720,"margin":0.08,"navigationMode":"linear","fragments":false}, queryOptions);
+    </script>
+
+    <script>
+      /**
+       * KaTeX Equation Numbering Note
+       *
+       * KaTeX maintains a global equation counter for \begin{equation} environments.
+       * When navigating between slides, reveal.js math plugin may re-render math, causing
+       * equation numbers to change randomly.
+       *
+       * Note: Regular $$ blocks don't have equation numbers - only \begin{equation} does.
+       *
+       * If you experience issues with equation numbers changing:
+       * Use manual \tag{} commands: \begin{equation}\tag{1} ... \end{equation}
+       */
+
+      Reveal.initialize(options);
+    </script>
+    <!-- created with Slides Extended reveal.html template -->
+</body>
+</html>
