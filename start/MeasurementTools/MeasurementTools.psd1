@@ -27,7 +27,7 @@
     PowerShellVersion    = '5.1'
 
     # Aus dem Modul exportierte Funktionen.
-    FunctionsToExport    = @()
+    FunctionsToExport    = @('Import-MeasurementFile','Test-Measurement','Get-MeasurementSummary')
 
     # Aus dem Modul exportierte Cmdlets.
     CmdletsToExport      = @()

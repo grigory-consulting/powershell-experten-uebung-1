@@ -1,4 +1,10 @@
 ﻿#Requires -Version 5.1
 
-# Modul MeasurementTools, erzeugt aus der Projektvorlage "Skriptmodul".
-# Die Vorlage liefert diese Datei ohne Inhalt.
+$public  = @(Get-ChildItem "$PSScriptRoot\Public\*.ps1")
+$private = @(Get-ChildItem "$PSScriptRoot\Private\*.ps1")
+
+foreach ($file in $public + $private) {
+    . $file.FullName
+}
+
+Export-ModuleMember -Function $public.BaseName
