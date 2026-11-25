@@ -1,4 +1,4 @@
-# PowerShell: Scripting für Experten, Teil I
+# PowerShell: Scripting für Experten, Teil I bis III
 
 Folien zum Mitlesen: <https://grigory-consulting.github.io/powershell-experten-uebung-1/>
 

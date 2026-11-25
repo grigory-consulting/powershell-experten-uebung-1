@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-    <title>PowerShell: Scripting für Experten, Teil I</title>
+    <title>PowerShell: Scripting für Experten, Teil I bis III</title>
     <link rel="stylesheet" href="dist/reset.css">
     <link rel="stylesheet" href="dist/reveal.css" />
     <link rel="stylesheet" href="css/slides-extended.css" />
@@ -1790,6 +1790,2561 @@ finally {
 - &shy;<!-- .element: class="fragment" data-fragment-index="5" -->Typkonvertierung, Kultur und `$null` in Vergleichen und Berechnungen kontrollieren 
 - &shy;<!-- .element: class="fragment" data-fragment-index="6" -->Arrays, Hashtables, `[pscustomobject]`, Enums und vorhandene Klassen einsetzen 
 - &shy;<!-- .element: class="fragment" data-fragment-index="7" -->Fehler so behandeln, dass `try`/`catch` greift
+</div>
+
+</script></section></section><section ><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="section-slide has-dark-background drop" data-background-color="#183b66" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="kicker">Teil II</p>
+
+# Skripte professionell entwickeln
+
+<div class="numeral">II</div>
+
+Skripte im Editor schreiben und debuggen, mit Git versionieren, mit Pester testen und jede Änderung in einer Pipeline prüfen lassen.
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Themen dieses Teils
+
+<div class="numbered">
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**Scripting mit Visual Studio Code**: PowerShell-Erweiterung, Sitzung, Debugger, PSScriptAnalyzer, Formatierung 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**Skripte versionieren mit Git**: Commit, Branch, Merge, Remote, `.gitignore`, Merge Request in GitLab 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->**Skripttests schreiben mit Pester**: `Describe`, `It`, `Should`, Discovery und Run, Mocking, Code Coverage 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->**Einfache CI/CD-Pipeline mit PowerShell**: `.gitlab-ci.yml`, Analyse, Tests, Testbericht, Merge Request als Qualitätsschranke 
+
+</div>
+
+<div class="merk fragment" data-fragment-index="5">
+
+CI/CD steht für Continuous Integration und Continuous Delivery: Jede Änderung wird automatisch geprüft, das geprüfte Ergebnis wird als Paket bereitgestellt.
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Abschnitt 1: Scripting mit Visual Studio Code
+
+Visual Studio Code mit der PowerShell-Erweiterung als Arbeitsplatz für Skripte: schreiben, ausführen, Fehler suchen und schon beim Schreiben prüfen.
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**PowerShell-Erweiterung**: IntelliSense (Vervollständigung), Navigation im Code, integrierte Konsole 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**Ausführen**: Auswahl mit <span class="kbd">F8</span>, Datei mit <span class="kbd">F5</span> 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->**Sitzung**: PowerShell-Version wählen, Sitzung neu starten 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->**Debugger**: Haltepunkte, Variablen, Aufrufliste, Startkonfiguration in `launch.json` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="5" -->**Qualität beim Schreiben**: PSScriptAnalyzer (prüft Skripte gegen Regeln), Formatierung, Einstellungen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="6" -->**ISE** (Integrated Scripting Environment): was beim Umstieg anders ist
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## PowerShell-Erweiterung für Visual Studio Code
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**IntelliSense**: Vervollständigung beim Tippen für Cmdlets, Parameter, Variablen und eigene Funktionen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**Go to Definition** (<span class="kbd">F12</span>) springt zur Stelle, an der ein Befehl oder eine Variable definiert ist; **Find All References** (<span class="kbd">Umschalt</span>+<span class="kbd">F12</span>) listet alle Stellen, die sie benutzen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->**PSScriptAnalyzer** prüft das Skript beim Schreiben gegen Regeln; die Befunde stehen in der Ansicht **Problems** 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->**Extension Terminal**: die integrierte Konsole, mit der Editor und Debugger zusammenarbeiten 
+- &shy;<!-- .element: class="fragment" data-fragment-index="5" -->Hilfe zum Befehl unter dem Cursor: <span class="kbd">Strg</span>+<span class="kbd">F1</span> 
+
+<div class="warn fragment" data-fragment-index="6">
+
+In 5.1: Die Erweiterung unterstützt Windows PowerShell nur in Version 5.1 und nur nach bestem Bemühen. Nötig ist .NET Framework 4.8 oder neuer.
+
+</div>
+
+<div class="quelle fragment" data-fragment-index="7">
+
+Quelle: PowerShell/vscode-powershell, README (v2025.4.0)
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Code ausführen: F8 und F5
+
+```powershell
+$path = '.\daten\messwerte\Nord_2026-11-23.csv'
+$rows = Import-Csv $path -Delimiter ';'
+
+$rows | Where-Object Status -ne 'OK' |
+    Select-Object Zeitstempel, Geraet, Status
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" --><span class="kbd">F8</span> führt die markierten Zeilen im Extension Terminal aus, ohne Markierung die aktuelle Zeile 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" --><span class="kbd">F5</span> startet die ganze Datei im Debugger; ohne Haltepunkt läuft sie durch 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Beide arbeiten in derselben Sitzung: `$rows` steht danach im Terminal bereit 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->**PowerShell: Restart Session** beginnt mit einer leeren Sitzung 
+
+<div class="warn fragment" data-fragment-index="5">
+
+Ein Skript, das nur läuft, weil eine Variable aus einem früheren Lauf noch in der Sitzung steht, scheitert in einer frischen Sitzung. Vor der Abgabe einmal nach einem Neustart der Sitzung ausführen.
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Sitzung und PowerShell-Version wählen
+
+```json
+{
+    "powershell.powerShellAdditionalExePaths": {
+        "PowerShell 7.6 (ZIP)": "D:\\Tools\\pwsh-7.6\\pwsh.exe"
+    },
+    "powershell.powerShellDefaultVersion": "PowerShell 7.6 (ZIP)"
+}
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Das PowerShell-Symbol im Sprachstatus `{}` der Statusleiste zeigt die Version der laufenden Sitzung 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**PowerShell: Show Session Menu** wechselt zwischen den gefundenen Installationen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`powerShellDefaultVersion` legt fest, welche Sitzung beim Start geöffnet wird 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`powerShellAdditionalExePaths` meldet Installationen an, die die Erweiterung nicht selbst findet 
+- &shy;<!-- .element: class="fragment" data-fragment-index="5" -->In 5.1 gegenprüfen: Sitzung auf `Windows PowerShell (x64)` umschalten, dasselbe Skript erneut ausführen
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Debugger: Lauf anhalten und schrittweise ausführen
+
+```powershell
+param($Path = '.\daten\messwerte\Nord_2026-11-23.csv')
+
+$total = 0
+foreach ($row in Import-Csv $Path -Delimiter ';') {
+    $total += [double]::Parse($row.Wert, [cultureinfo]'de-DE')
+}
+"Summe: $total"
+```
+
+Fehlt in der Datei ein Wert, meldet Zeile 5 einen Fehler, und die Summe erscheint trotzdem.
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Haltepunkt: Klick links neben die Zeilennummer, Start mit <span class="kbd">F5</span> 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Schrittweise: **Step Over**, **Step Into** (in die Funktion), **Step Out** (heraus) 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->**Continue** (<span class="kbd">F5</span>) läuft bis zum nächsten Haltepunkt, **Stop** (<span class="kbd">Umschalt</span>+<span class="kbd">F5</span>) beendet den Lauf
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Debugger: Variablen, Überwachung, Aufrufliste
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**VARIABLES**: Variablen des gewählten Stack-Frames; **Set Value** ändert einen Wert, während der Lauf hält 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**WATCH**: Ausdrücke, die bei jedem Halt neu ausgewertet werden, etwa `$row.Wert` oder `$total` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->**CALL STACK**: die Kette der Aufrufe; ein Klick auf einen Frame zeigt dessen Zeile und Variablen 
+
+<div class="fragment" data-fragment-index="4">
+
+Dieselbe Kette liefert `Get-PSCallStack`, hier bei einem Halt in einer privaten Funktion des Moduls:
+
+```text
+Command                    Location
+-------                    --------
+ConvertTo-MeasurementValue ConvertTo-MeasurementValue.ps1: line 1
+Import-MeasurementFile     Import-MeasurementFile.ps1: line 84
+Show-DailyReport.ps1       Show-DailyReport.ps1: line 2
+```
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Bedingte Haltepunkte
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Rechtsklick links neben die Zeile: **Add Conditional Breakpoint** 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**Expression**: Der Lauf hält nur, wenn der Ausdruck wahr ist, zum Beispiel `$row.Status -ne 'OK'` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->**Hit Count**: Der Lauf hält erst nach einer Zahl von Durchläufen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->**Logpoint**: schreibt eine Meldung, ohne anzuhalten, sofern der Debugger das unterstützt 
+
+<div class="fragment" data-fragment-index="5">
+
+Im Extension Terminal setzt `Set-PSBreakpoint` solche Haltepunkte, auch auf Variablen und Befehle:
+
+```powershell
+Set-PSBreakpoint -Script .\Get-DailyTotal.ps1 -Line 5 -Action {
+    if ($row.Status -ne 'OK') { break }
+}
+Set-PSBreakpoint -Variable total -Mode Write
+Set-PSBreakpoint -Command ConvertTo-MeasurementValue
+```
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## `launch.json` mit `script`
+
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Tagessumme Süd",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${workspaceFolder}/Get-DailyTotal.ps1",
+            "args": ["-Path", "daten/messwerte/Sued_2026-11-23.csv"]
+        }
+    ]
+}
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Datei `.vscode/launch.json`: Konfigurationen für die Auswahl in **Run and Debug** 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`script` nennt Skript oder Befehl, etwa `Invoke-Pester`; `args` die Argumente 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->In 5.1 starten: `"sessionName": "Windows PowerShell (x64)"` ergänzen
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## PSScriptAnalyzer im Editor
+
+```powershell
+function Get-MissingValues($Path) {
+    $count = 0
+    $rows = ipcsv $Path -Delimiter ';'
+    $rows | ? { $_.Wert -eq $null }
+}
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```text
+RuleName                              Severity Line
+--------                              -------- ----
+PSAvoidUsingCmdletAliases              Warning    3
+PSAvoidUsingCmdletAliases              Warning    4
+PSUseSingularNouns                     Warning    1
+PSPossibleIncorrectComparisonWithNull  Warning    4
+PSUseDeclaredVarsMoreThanAssignments   Warning    2
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**PSScriptAnalyzer** prüft Skripte gegen Regeln; die Tabelle zeigt seine Befunde für die Funktion darüber 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Die PowerShell-Erweiterung enthält den Analyzer und prüft beim Bearbeiten: Wellenlinie unter der betroffenen Stelle, alle Befunde in der Ansicht **Problems** 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->In einer eigenen Konsole liefert `Invoke-ScriptAnalyzer -Path <Datei>` dieselben Befunde
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Formatierung und Einstellungen
+
+```json
+{
+    "powershell.codeFormatting.preset": "OTBS",
+    "powershell.codeFormatting.useCorrectCasing": true,
+    "powershell.codeFormatting.autoCorrectAliases": true,
+    "powershell.pester.useLegacyCodeLens": false,
+    "[powershell]": {
+        "files.encoding": "utf8bom"
+    }
+}
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**Format Document** formatiert die Datei mit den Regeln des PSScriptAnalyzer 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`preset` legt den Klammerstil fest: `Allman`, `OTBS`, `Stroustrup` oder `Custom` mit Einzelschaltern 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`autoCorrectAliases` ersetzt `ipcsv` und `?` beim Formatieren durch die vollen Namen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->In 5.1: Ohne BOM (Byte Order Mark) liest Windows PowerShell Umlaute falsch, deshalb `utf8bom`
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## ISE und Visual Studio Code
+
+| | ISE | Visual Studio Code |
+|---|---|---|
+| PowerShell-Version | nur Windows PowerShell | PowerShell 7.x und Windows PowerShell 5.1 |
+| Zeile oder Auswahl ausführen | <span class="kbd">F8</span> | <span class="kbd">F8</span> |
+| Debugger unterbrechen | <span class="kbd">Strg</span>+<span class="kbd">B</span> | <span class="kbd">F6</span> |
+| Snippets auflisten | <span class="kbd">Strg</span>+<span class="kbd">J</span> | <span class="kbd">Strg</span>+<span class="kbd">Alt</span>+<span class="kbd">J</span> |
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->PowerShell 7.x unterstützt die ISE nicht: Wer 7.6 nutzt, arbeitet in Visual Studio Code 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**PowerShell: Enable ISE Mode** stellt Tastenbelegung und Aufteilung auf die Gewohnheiten der ISE um 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Die ISE speichert oft in anderer Kodierung: Wechselnde Editoren an derselben Datei erzeugen Umlautfehler 
+
+<div class="quelle fragment" data-fragment-index="4">
+
+Quelle: Microsoft Learn, How to replicate the ISE experience in Visual Studio Code
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Abschnitt 2: Skripte versionieren mit Git
+
+Git hält jede Änderung an Skripten und Modulen fest: frühere Stände wiederherstellen, parallel arbeiten, Änderungen zusammenführen.
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**Drei Bereiche**: Arbeitsverzeichnis, Staging-Bereich, Repository 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**Grundzyklus**: `status`, `add`, `commit`, dazu `diff` und `log` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->**Inhalt des Repositorys**: `.gitignore`, keine Secrets 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->**Branch und Merge**: parallel arbeiten, Konflikte lösen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="5" -->**Remote** (das Repository auf dem Server): `clone`, `push`, `fetch`, `pull` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="6" -->**Zusammenarbeit**: Merge Request in GitLab, Git im Terminal und im Editor
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Arbeitsverzeichnis, Staging-Bereich, Repository
+
+<img src="figs/git-bereiche.png" alt="" style="object-fit: scale-down">
+
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**Arbeitsverzeichnis**: die Dateien, die Sie im Editor sehen und ändern 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**Staging-Bereich**: Was `git add` vormerkt, kommt in den nächsten Commit 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->**Repository**: alle Commits mit Vorgänger, Autor, Zeit und Nachricht 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->**Remote**: die Kopie auf dem Server; erst `git push` überträgt dorthin
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## `git init` und `git clone`
+
+```bash
+git init -b main            # neues Repository im aktuellen Ordner
+# oder: vorhandenes Repository vom Server holen
+git clone https://gitlab.example.com/team/measurement-tools.git
+
+git config user.name  "Vorname Nachname"
+git config user.email "vorname.nachname@example.com"
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`init` legt den Ordner `.git` an: Das Repository liegt im Projektordner selbst 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`clone` lädt alle Commits und Branches und richtet den Server als Remote `origin` ein 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`user.name` und `user.email` stehen als Autor in jedem Commit 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Issues und Merge Requests liegen auf dem Server, nicht im Repository
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## `git status`, `git add`, `git commit`
+
+```bash
+git status --short
+git add MeasurementTools/Public/Test-Measurement.ps1
+git commit -m "Ersatzwert gilt als gültiger Status"
+```
+
+<div class="columns">
+
+<div class="column" style="width: 50%">
+
+Vor `git add`:
+
+```text
+ M MeasurementTools/Public/Test-Measurement.ps1
+?? coverage.xml
+?? testResults.xml
+```
+
+</div>
+
+<div class="column" style="width: 50%">
+
+Nach `git add`:
+
+```text
+M  MeasurementTools/Public/Test-Measurement.ps1
+?? coverage.xml
+?? testResults.xml
+```
+
+</div>
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Spalte 1: Staging-Bereich gegenüber dem letzten Commit; Spalte 2: Arbeitsverzeichnis gegenüber dem Staging-Bereich 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`M` heißt geändert (modified): `git add` rückt es von Spalte 2 nach Spalte 1, die Änderung ist vorgemerkt 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`??` heißt: Git verfolgt die Datei nicht 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`commit` speichert genau das Vorgemerkte, hier eine Datei; die Nachricht sagt, was sich ändert
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## `git diff` und `git log`
+
+`git diff -U1` zeigt, was im Arbeitsverzeichnis noch nicht vorgemerkt ist:
+
+```diff
+@@ -71,3 +71,3 @@
+ 
+-            if ($item.Status -ne 'OK') {
++            if ($item.Status -notin 'OK', 'Ersatzwert') {
+                 $reasons.Add('Status nicht OK')
+```
+
+<div class="fragment" data-fragment-index="1">
+
+`git log --oneline` listet die Commits, den neuesten zuerst:
+
+```text
+7998a82 Testergebnisse und lokale Daten ignorieren
+b491c32 Ersatzwert gilt als gültiger Status
+8b3f811 Messwertmodul 0.1.0 mit erstem Test
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`git diff --staged` vergleicht den Staging-Bereich mit dem letzten Commit: der Inhalt des nächsten Commits 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`git show b491c32` zeigt einen Commit mit Autor, Nachricht und Änderungen
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## `.gitignore` für PowerShell-Projekte
+
+<div class="columns">
+
+<div class="column" style="width: 44%">
+
+```bash
+# Ergebnisse von Pester und Pipeline
+testResults.xml
+coverage.xml
+dist/
+# lokale Daten und Anmeldedaten
+daten/
+*.log
+*.clixml
+*.pfx
+# Editor: nur gemeinsame Einstellungen
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+```
+
+</div>
+
+<div class="column" style="width: 56%">
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Eine Regel je Zeile: Dateiname, Muster mit `*`, Ordner mit `/` am Ende, Ausnahme mit `!` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Die Regeln wirken nur auf Dateien, die Git noch nicht verfolgt 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`git check-ignore -v coverage.xml` nennt die Regel, die greift 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Die Datei `.gitignore` selbst gehört ins Repository 
+
+</div>
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Inhalt des Repositorys: keine Secrets
+
+| Gehört hinein | Gehört nicht hinein |
+|---|---|
+| Modul mit Manifest, Tests, kleine Prüfdateien | Passwörter, Tokens, private Schlüssel |
+| `PSScriptAnalyzerSettings.psd1`, `.gitlab-ci.yml` | exportierte Anmeldedaten (`Export-Clixml`) |
+| `README.md`, `.gitignore`, gemeinsame Editor-Einstellungen | Testberichte, Coverage, gebaute Pakete |
+| alles, was zum Bauen und Prüfen nötig ist | Messwertdateien, Logs, Kundendaten |
+
+<div class="fragment" data-fragment-index="1">
+
+Passwort im nächsten Commit entfernt, `git log --oneline -S 'Sommer2026!'` findet es:
+
+```text
+5fad5fb Passwort entfernt
+70a1c23 Anmeldung ergänzt
+```
+
+</div>
+
+<div class="warn fragment" data-fragment-index="2">
+
+Gelöschte Passwörter bleiben in der Historie lesbar: Passwort ändern.
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Branch und Merge
+
+```bash
+git switch -c feature/summary-tests   # Branch anlegen und wechseln
+git commit -m "Test für Get-MeasurementSummary"
+git switch main
+git merge feature/summary-tests
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```text
+*   dcb698e Merge branch 'feature/summary-tests'
+|\  
+| * 3be3939 Test für Get-MeasurementSummary
+* | ac29e02 README ergänzt
+|/  
+* 7998a82 Testergebnisse und lokale Daten ignorieren
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Ein Branch ist ein Name, der auf einen Commit zeigt; ein zweiter Projektordner entsteht nicht 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Haben beide Seiten neue Commits, entsteht ein Merge-Commit mit zwei Vorgängern 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Hat `main` keine eigenen neuen Commits, rückt der Name nur vor: Fast-forward
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Merge-Konflikt
+
+```text
+Auto-merging MeasurementTools/Public/Test-Measurement.ps1
+CONFLICT (content): Merge conflict in MeasurementTools/Public/Test-Measurement.ps1
+Automatic merge failed; fix conflicts and then commit the result.
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```text
+<<<<<<< HEAD
+                $reasons.Add('Status ungültig')
+=======
+                $reasons.Add("Status $($item.Status)")
+>>>>>>> feature/status-text
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Beide Branches haben dieselbe Zeile geändert: Git fügt beide Fassungen mit Markern in die Datei ein 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Auflösen: Datei bearbeiten, Marker entfernen, `git add`, `git commit` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`git merge --abort` bricht ab und stellt den Stand vor dem Merge wieder her
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Remote: `push`, `fetch`, `pull`
+
+```bash
+git push -u origin feature/summary-tests   # Branch zum Server
+git fetch                                  # Stand des Servers holen
+git log --oneline HEAD..origin/main        # was ist dort neu?
+git pull --ff-only                         # main nachziehen
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```text
+b486589 Merge branch 'feature/readme-beispiel' into 'main'
+eeaf4bd README: Beispielaufruf
+Updating 567c580..b486589
+Fast-forward
+ README.md | 4 ++++
+ 1 file changed, 4 insertions(+)
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`push -u` legt den Branch auf dem Server an und verknüpft ihn mit dem lokalen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`fetch` ändert nur `origin/main`, die lokale Kopie des Serverstands; `pull` baut ihn ein 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`--ff-only` bricht ab, wenn der lokale `main` eigene Commits hat
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Merge Request in GitLab
+
+<img src="figs/git-merge-request-ablauf.png" alt="" style="object-fit: scale-down">
+
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**Source** ist der Feature-Branch, **Target** der Zielbranch, meist `main` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Der Merge Request zeigt den Diff zum Target und sammelt die Kommentare 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Jeder neue Push auf den Source-Branch aktualisiert den Merge Request 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Nach dem Merge lokal: `git switch main`, `git pull --ff-only`
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Git im Terminal und in Visual Studio Code
+
+| Aufgabe | Terminal | Ansicht Source Control |
+|---|---|---|
+| Stand ansehen | `git status` | Listen **Changes** und **Staged Changes** |
+| Änderung ansehen | `git diff` | Klick auf die Datei: Vergleich nebeneinander |
+| Vormerken | `git add <Datei>` | Pluszeichen an der Datei |
+| Commit | `git commit -m "…"` | Nachricht eingeben, **Commit** |
+| Branch wechseln oder anlegen | `git switch`, `git switch -c` | Branchname in der Statusleiste |
+| Übertragen | `git push`, `git pull` | **Sync Changes** |
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Beide Wege arbeiten auf demselben Repository: Was das Terminal vormerkt, zeigt die Ansicht sofort 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Im Terminal stehen Befehl und Meldung im Klartext, so wie in Anleitungen und im Log der Pipeline
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Abschnitt 3: Skripttests schreiben mit Pester
+
+Pester ist das Testframework für PowerShell: Ein Test ruft eine Funktion mit bekannten Eingaben auf und vergleicht das Ergebnis mit dem erwarteten.
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**Testdatei**: `*.Tests.ps1`, `Describe`, `Context`, `It`, `Should` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**Vorbereiten und aufräumen**: `BeforeAll`, `BeforeEach`, `AfterAll` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->**Zwei Phasen**: Discovery und Run 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->**Testdaten**: `-ForEach`, `-TestCases`, `TestDrive:` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="5" -->**Abhängigkeiten ersetzen**: `Mock`, `Should -Invoke`, `InModuleScope` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="6" -->**Auswerten**: Code Coverage, `New-PesterConfiguration`, Testbericht 
+
+<div class="warn fragment" data-fragment-index="7">
+
+In 5.1: Windows PowerShell bringt Pester 3.4 mit. Die Syntax dieses Abschnitts braucht Pester 5; der Kurs arbeitet mit 5.9.1.
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Aufbau einer Testdatei
+
+```powershell
+BeforeAll {
+    Import-Module "$PSScriptRoot/../MeasurementTools" -Force
+}
+
+Describe 'Test-Measurement' {
+    It 'lässt einen plausiblen Wert gelten' {
+        $item = [pscustomobject]@{ Value = 12.5; Status = 'OK' }
+        ($item | Test-Measurement).IsValid | Should -BeTrue
+    }
+    It 'meldet einen fehlenden Wert' {
+        $item = [pscustomobject]@{ Value = $null; Status = 'OK' }
+        ($item | Test-Measurement).Reason | Should -Be 'Wert fehlt'
+    }
+}
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Dateiname `*.Tests.ps1`: Pester sucht nach dieser Endung 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`Describe` gruppiert, `It` ist ein Test, `Should` prüft das Ergebnis 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`BeforeAll` lädt das Modul, bevor der erste Test läuft
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Tests ausführen und Ergebnis lesen
+
+Aufruf im Projektordner: `Invoke-Pester .\tests -Output Detailed`
+
+```text
+Describing Test-Measurement
+  [+] lässt einen plausiblen Wert gelten 43ms (30ms|13ms)
+  [-] meldet einen fehlenden Wert 35ms (35ms|1ms)
+   Expected strings to be the same, but they were different.
+   Expected length: 10
+   Actual length:   12
+   Strings differ at index 5.
+   Expected: 'Wert fehlt'
+   But was:  'Wert negativ'
+              -----^
+   at ($item | Test-Measurement).Reason | Should -Be 'Wert fehlt', …
+Tests Passed: 1, Failed: 1, Skipped: 0, Inconclusive: 0, NotRun: 0
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`[+]` bestanden, `[-]` fehlgeschlagen, mit erwartetem und tatsächlichem Wert und der Zeile des `Should` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->In Visual Studio Code: **Run tests** und **Debug tests** als CodeLens über den Blöcken
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## `Should`-Operatoren
+
+```powershell
+$result.Reason      | Should -Be 'Wert fehlt; Status nicht OK'
+$rows[0].Status     | Should -BeExactly 'OK'
+$result.IsValid     | Should -BeFalse
+$rows[2].Value      | Should -BeNullOrEmpty
+$rows               | Should -HaveCount 3
+$rows.Status        | Should -Contain 'Gestoert'
+$rows[0].DeviceId   | Should -Match '^G-\d{4}$'
+$rows[0].Timestamp  | Should -BeOfType [datetime]
+$rows[0].Value      | Should -Not -BeNullOrEmpty
+{ Import-MeasurementFile .\fehlt.csv -ErrorAction Stop } |
+    Should -Throw
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`Should` steht am Ende einer Pipeline und prüft, was von links ankommt: `$rows` sind drei eingelesene Zeilen, `$result` ist das Prüfergebnis der dritten 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`-Be` vergleicht ohne Rücksicht auf Groß- und Kleinschreibung, `-BeExactly` mit 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`-Not` kehrt jeden Operator um; `-Because 'Grund'` ergänzt die Fehlermeldung 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`-Throw` braucht einen Skriptblock und einen Fehler, der abbricht
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## `BeforeAll`, `BeforeEach`, `AfterAll`
+
+```powershell
+Describe 'Import-MeasurementFile' {
+    BeforeAll {                       # einmal für den Block
+        Import-Module "$PSScriptRoot/../MeasurementTools" -Force
+        $sample = "$PSScriptRoot/testdaten/Nord_2026-11-23.csv"
+    }
+    BeforeEach {                      # vor jedem It
+        $rows = @(Import-MeasurementFile -Path $sample)
+    }
+
+    It 'liefert je Zeile ein Objekt' { $rows | Should -HaveCount 3 }
+    It 'liest Dezimalzahlen' { $rows[0].Value | Should -Be 1234.56 }
+}
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Variablen aus beiden Blöcken sind im `It` lesbar, jedes `It` hat eigenen Scope 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`AfterAll` und `AfterEach` räumen auf, auch nach einem fehlgeschlagenen Test 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`Context` gruppiert wie `Describe` und kann eigene `BeforeAll` haben
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Discovery und Run
+
+<img src="figs/pester-discovery-run.png" alt="" style="object-fit: scale-down">
+
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**Discovery**: `Describe` und `Context` laufen, `It` und `BeforeAll` werden nur gesammelt 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**Run**: Pester führt die gesammelten Blöcke aus, jeden Test in eigenem Scope 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Testcode gehört in `It`, `BeforeAll`, `BeforeEach`, `AfterAll` oder `AfterEach` 
+
+<div class="quelle fragment" data-fragment-index="4">
+
+Quelle: pester.dev, Discovery and Run
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Code auf oberster Ebene der Testdatei
+
+```powershell
+$sample = "$PSScriptRoot/testdaten/Nord_2026-11-23.csv"
+Import-Module "$PSScriptRoot/../MeasurementTools" -Force
+
+Describe 'Import-MeasurementFile' {
+    It 'liefert je Zeile ein Objekt' {
+        @(Import-MeasurementFile $sample) | Should -HaveCount 3
+    }
+}
+```
+
+Die Prüfdatei mit drei Zeilen liegt an diesem Ort. `Invoke-Pester` meldet:
+
+<div class="fragment" data-fragment-index="1">
+
+```text
+  [-] liefert je Zeile ein Objekt 21ms (11ms|10ms)
+   ParameterBindingValidationException: Cannot bind argument to
+   parameter 'Path' because it is null.
+```
+
+</div>
+
+<div class="warn fragment" data-fragment-index="2">
+
+Zeile 1 lief in der Discovery. Im Run gibt es `$sample` nicht mehr: Zuweisung und Import gehören in `BeforeAll`.
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Datengetriebene Tests: `-ForEach` und `-TestCases`
+
+```powershell
+It 'meldet <Reason>' -ForEach @(
+    @{ Value = $null;  Reason = 'Wert fehlt' }
+    @{ Value = -5.0;   Reason = 'Wert negativ' }
+    @{ Value = 2000.0; Reason = 'Wert zu hoch' }
+) {
+    $reading = [pscustomobject]@{ Value = $Value; Status = 'OK' }
+    $result = $reading | Test-Measurement -MaxValue 1500
+    $result.Reason | Should -Be $Reason
+}
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```text
+  [+] meldet Wert fehlt 48ms (37ms|12ms)
+  [+] meldet Wert negativ 3ms (2ms|1ms)
+  [+] meldet Wert zu hoch 3ms (2ms|1ms)
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Je Hashtable ein Test: Schlüssel werden Variablen, `<Reason>` füllt den Namen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`-TestCases` ist der ältere Name desselben Parameters 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Daten für `-ForEach` gehören in `BeforeDiscovery`, nicht in `BeforeAll`
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Testdateien in `TestDrive:`
+
+```powershell
+Describe 'Import-MeasurementFile' {
+    BeforeAll {
+        $file = Join-Path $TestDrive 'West_2026-11-23.csv'
+        Set-Content -Path $file -Value @(
+            'Zeitstempel;Geraet;Wert;Einheit;Status'
+            '23.11.2026 00:00;G-1042;1234,56;kWh;OK'
+        )
+    }
+    It 'trägt den Dateinamen in SourceFile ein' {
+        $rows = @(Import-MeasurementFile -Path $file)
+        $rows[0].SourceFile | Should -Be 'West_2026-11-23.csv'
+    }
+}
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Pester legt je Testdatei einen temporären Ordner an: `TestDrive:`, Pfad in `$TestDrive` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Dateien aus einem `Describe` oder `Context` verschwinden am Ende des Blocks 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Kein Test schreibt in echte Datenordner oder braucht Dateien des Rechners
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## `Mock` und `Should -Invoke`
+
+```powershell
+function Get-ImportServerStatus {
+    param([string[]]$ComputerName)
+    foreach ($name in $ComputerName) {
+        $reachable = Test-Connection $name -Count 1 -Quiet
+        [pscustomobject]@{ Server = $name; Reachable = $reachable }
+    }
+}
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```powershell
+It 'fragt jeden Server genau einmal ab' {
+    Mock Test-Connection { $true }
+    $status = Get-ImportServerStatus 'IMP-NORD-01', 'IMP-SUED-01'
+    $status.Reachable | Should -Be $true, $true
+    Should -Invoke Test-Connection -Times 2 -Exactly
+}
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`Mock` ersetzt einen Befehl im Test durch einen Skriptblock: kein Netz, kein Server nötig 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`Should -Invoke` prüft, ob und wie oft der ersetzte Befehl aufgerufen wurde
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Mocking im Modul: `-ModuleName` und `InModuleScope`
+
+```powershell
+It 'meldet einen Server als nicht erreichbar' {
+    Mock Test-Connection { $false } -ModuleName MeasurementTools
+    (Get-ImportServerStatus 'IMP-OST-01').Reachable | Should -BeFalse
+    Should -Invoke Test-Connection -ModuleName MeasurementTools
+}
+
+It 'liest das Dezimalkomma (private Funktion)' {
+    InModuleScope MeasurementTools {
+        ConvertTo-MeasurementValue '1234,56' -Culture 'de-DE' |
+            Should -Be 1234.56
+    }
+}
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Ruft eine Funktion des Moduls den Befehl auf, muss der Mock im Modul wirken: `-ModuleName` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Ohne `-ModuleName` läuft der echte Befehl, und `Should -Invoke` zählt 0 Aufrufe 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`InModuleScope` führt Testcode im Modul aus und erreicht so private Funktionen
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Code Coverage
+
+```powershell
+$config = New-PesterConfiguration
+$config.Run.Path = './tests'
+$config.CodeCoverage.Enabled = $true
+$config.CodeCoverage.Path = './MeasurementTools'
+$config.Output.Verbosity = 'Detailed'
+Invoke-Pester -Configuration $config
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```text
+Tests Passed: 3, Failed: 0, Skipped: 0, Inconclusive: 0, NotRun: 0
+Covered 47,96% / 75%. 98 analyzed Commands in 5 Files.
+Missed commands:
+…
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Gezählt wird, welche Befehle unter `CodeCoverage.Path` in den Tests liefen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`75%` ist der Zielwert `CoveragePercentTarget`; der Lauf besteht auch darunter 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Nicht gelaufen sind 51 Befehle, 46 davon in `Get-MeasurementSummary`
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## `New-PesterConfiguration` und Testbericht
+
+```powershell
+$config = New-PesterConfiguration
+$config.Run.Path = './tests'
+$config.Run.Exit = $true
+$config.Output.Verbosity = 'Detailed'
+$config.TestResult.Enabled = $true
+$config.TestResult.OutputFormat = 'JUnitXml'
+$config.TestResult.OutputPath = 'testResults.xml'
+
+Invoke-Pester -Configuration $config
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Abschnitte, unter anderem: `Run`, `Filter`, `Output`, `TestResult`, `CodeCoverage`, `Should` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Ohne `TestResult.Enabled` entsteht kein Bericht 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`JUnitXml` ist das Format, das GitLab liest; Standard ist `NUnitXml` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`Run.Exit`: Exitcode ungleich 0, wenn Tests fehlschlagen
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Pester 6 im Vergleich zu Pester 5
+
+| Thema | Pester 5.9.1 | Pester 6 (aktuell 6.2.0) |
+|---|---|---|
+| Stand | Wartungsmodus seit 5.9.0 | aktuelle Reihe |
+| Discovery und Run | erst alle Dateien entdecken, dann ausführen | Datei für Datei |
+| `-ForEach` mit leeren Daten | kein Test, keine Meldung | Fehler |
+| Aufruf, auf den kein Mock-Filter passt | echter Befehl läuft | Fehler |
+| Entfernt | | `Assert-MockCalled`, alte Parameter von `Invoke-Pester` |
+| Neu | | `Should-Be` und weitere, schnellere Coverage, parallele Läufe (experimentell) |
+
+<div class="merk fragment" data-fragment-index="1">
+
+Tests in der Schreibweise dieses Abschnitts laufen unter beiden Versionen: `New-PesterConfiguration`, `Should -Invoke`, ein `BeforeAll` je Block, Daten für `-ForEach` in `BeforeDiscovery`.
+
+</div>
+
+<div class="quelle fragment" data-fragment-index="2">
+
+Quelle: pester.dev, Migrating from Pester v5 to v6
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Abschnitt 4: Einfache CI/CD-Pipeline mit PowerShell
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**Idee**: Jede Änderung wird auf dem Server automatisch analysiert und getestet, bei jedem Push und für alle im Team gleich 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**Aufbau**: `.gitlab-ci.yml` beschreibt die Pipeline aus Stufen und Jobs, ein Container-Image liefert PowerShell 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->**Erfolg und Fehler**: Der Exitcode entscheidet 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->**Analyse**: PSScriptAnalyzer mit eigenem Regelsatz 
+- &shy;<!-- .element: class="fragment" data-fragment-index="5" -->**Tests**: Pester mit Testbericht und Coverage 
+- &shy;<!-- .element: class="fragment" data-fragment-index="6" -->**Qualitätsschranke**: Merge Request, danach der Ausblick auf die Auslieferung
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Pipeline, Stage, Job, Runner
+
+<img src="figs/ci-pipeline-stufen.png" alt="" style="object-fit: scale-down">
+
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**Pipeline**: ein Durchlauf aller Jobs für genau einen Commit 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**Job**: Befehle, die ein **Runner** ausführt, mit Erfolg oder Fehler am Ende 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->**Stage** (Stufe) ordnet die Jobs; nach einem Fehler startet die nächste nicht 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Jeder Job läuft in einer eigenen, frischen Umgebung
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## `.gitlab-ci.yml`: Stufen und Jobs
+
+```yaml
+stages: [analyze, test]
+
+analyze:
+  stage: analyze
+  script:
+    - pwsh -NoProfile -File ci/Invoke-Analysis.ps1
+
+test:
+  stage: test
+  script:
+    - pwsh -NoProfile -File ci/Invoke-Tests.ps1
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`.gitlab-ci.yml` im Stamm des Repositorys: Jeder Push startet eine Pipeline für den Commit 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`analyze` und `test` sind Jobs, die Namen sind frei; `stage` ordnet jeden Job einer Stufe zu 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`stages` legt die Reihenfolge der Stufen fest: Scheitert `analyze`, startet `test` nicht 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`script` ruft Skripte aus dem Repository auf, die lokal genauso laufen
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Container-Image mit PowerShell
+
+```yaml
+default:
+  image: mcr.microsoft.com/dotnet/sdk:10.0
+  before_script:
+    - pwsh -NoProfile -File ci/Install-Modules.ps1
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`image` nennt das Container-Image für den Job; `default` gilt für alle Jobs 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->PowerShell steckt im .NET-SDK-Image von Microsoft: Tag `10.0` enthält 7.6 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`mcr.microsoft.com/powershell` gilt als veraltet, ein stabiles 7.6 fehlt dort 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Pester und PSScriptAnalyzer installiert `before_script` in fester Version 
+- &shy;<!-- .element: class="fragment" data-fragment-index="5" -->In 5.1 testen: nur mit einem Windows-Runner, der Container hat 7.6 
+
+<div class="quelle fragment" data-fragment-index="6">
+
+Quelle: Microsoft Learn, Use PowerShell in Docker
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Exitcode und Jobstatus
+
+| Das Skript endet | Exitcode von `pwsh -File` | Job |
+|---|---|---|
+| ohne Fehler | 0 | erfolgreich |
+| mit `throw` | 1 | fehlgeschlagen |
+| 2 Tests fehlgeschlagen, ohne `Run.Exit` | 0 | erfolgreich |
+| 2 Tests fehlgeschlagen, `Run.Exit = $true` | 2 | fehlgeschlagen |
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Ein Job schlägt fehl, wenn der Prozess mit einem Exitcode ungleich 0 endet 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`Run.Exit` liefert die Zahl fehlgeschlagener Tests als Exitcode 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Eigene Prüfungen im Skript beenden den Job mit `throw` 
+
+<div class="warn fragment" data-fragment-index="4">
+
+Ohne `Run.Exit` oder `throw` bleibt der Job trotz fehlgeschlagener Tests erfolgreich.
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## PSScriptAnalyzer mit eigenem Regelsatz
+
+```powershell
+@{
+    Severity     = @('Error', 'Warning')
+    ExcludeRules = @('PSAvoidUsingWriteHost')
+    Rules        = @{
+        PSUseCompatibleSyntax = @{
+            Enable         = $true
+            TargetVersions = @('5.1', '7.6')
+        }
+    }
+}
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`PSScriptAnalyzerSettings.psd1` im Projektstamm gilt für Editor und Pipeline 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`Severity`, `IncludeRules`, `ExcludeRules` wählen Regeln aus, `Rules` stellt sie ein 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->In 5.1: `PSUseCompatibleSyntax` meldet Syntax, die dort fehlt, etwa `? :` und `??`
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Analyse-Job
+
+```powershell
+$analysis = @{
+    Path     = './MeasurementTools'
+    Recurse  = $true
+    Settings = './PSScriptAnalyzerSettings.psd1'
+}
+$findings = @(Invoke-ScriptAnalyzer @analysis)
+foreach ($finding in $findings) {
+    '{0}:{1} {2} {3}: {4}' -f $finding.ScriptName, $finding.Line,
+        $finding.Severity, $finding.RuleName, $finding.Message
+}
+if ($findings.Count -gt 0) {
+    throw "Befunde von PSScriptAnalyzer: $($findings.Count)"
+}
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```text
+Get-MeasurementStatusText.ps1:4 Error PSUseCompatibleSyntax: The
+ternary expression syntax '<test> ? <exp1> : <exp2>' is not
+available by default in PowerShell versions 3,4,5,6
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Je Befund steht eine Zeile im Log, danach beendet `throw` den Prozess mit Exitcode 1 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Lokal vor dem Push: `pwsh -NoProfile -File ci/Invoke-Analysis.ps1`
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Test-Job mit Testbericht
+
+```yaml
+test:
+  stage: test
+  script:
+    - pwsh -NoProfile -File ci/Invoke-Tests.ps1
+  artifacts:
+    when: always
+    paths:
+      - testResults.xml
+    reports:
+      junit: testResults.xml
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`reports:junit` liest den Bericht von Pester: GitLab zeigt die Tests in der Pipeline und im Merge Request 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`when: always` lädt die Datei auch hoch, wenn Tests fehlschlagen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`paths` macht die Datei zusätzlich als Download am Job verfügbar
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Coverage im Merge Request
+
+```yaml
+test:
+  script:
+    - pwsh -NoProfile -File ci/Invoke-Tests.ps1
+  coverage: '/Covered \d{1,3}[.,]?\d{0,2}%/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`coverage` sucht mit einem regulären Ausdruck im Log des Jobs: Pester schreibt dort eine Zeile wie `Covered 47.96% / 75%.` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->GitLab zeigt den Prozentwert am Job und im Merge Request 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`coverage_report` liest `coverage.xml` und markiert im Diff des Merge Requests getestete und ungetestete Zeilen 
+
+<div class="quelle fragment" data-fragment-index="4">
+
+Quelle: GitLab Docs, Coverage reporting und Coverage visualization
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Coverage-Schwelle in der Pipeline
+
+```powershell
+$config.Run.PassThru = $true
+$config.CodeCoverage.CoveragePercentTarget = 70
+$result = Invoke-Pester -Configuration $config
+if ($result.Result -ne 'Passed') {
+    throw "$($result.FailedCount) Tests sind rot."
+}
+$coverage = $result.CodeCoverage
+if ($coverage.CoveragePercent -lt $coverage.CoveragePercentTarget) {
+    throw 'Coverage liegt unter dem Zielwert.'
+}
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```text
+Covered 47,96% / 70%. 98 analyzed Commands in 5 Files.
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`Run.PassThru` liefert das Ergebnisobjekt, das Skript entscheidet selbst über Erfolg und Fehler 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Pester setzt den Zielwert nicht durch: Erst der Vergleich mit `throw` lässt den Job scheitern
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Merge Request als Qualitätsschranke
+
+| Im Merge Request sichtbar | Kommt aus |
+|---|---|
+| Status der Pipeline für den letzten Commit | Jobs `analyze` und `test` |
+| Test summary: neu fehlgeschlagene Tests | `artifacts:reports:junit` |
+| Coverage in Prozent | Schlüsselwort `coverage` |
+| Markierte Zeilen im Diff | `coverage_report` |
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Projekteinstellung **Pipelines must succeed**: Der Merge ist erst bei erfolgreicher Pipeline möglich 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Geschützter Branch `main`: kein direkter Push, Änderungen kommen nur über Merge Requests 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Review und Freigabe bleiben eigene Schritte neben der Pipeline
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Ausblick: Auslieferung als Paket
+
+```yaml
+publish:
+  stage: publish
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - pwsh -NoProfile -File ci/Publish-Module.ps1
+  artifacts:
+    paths:
+      - dist/
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Dritte Stufe `publish`: Wegen `if: $CI_COMMIT_TAG` läuft der Job nur für ein Git-Tag, also einen benannten Commit wie `v0.1.0`, nach erfolgreicher Analyse und bestandenen Tests 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Das Skript packt den Modulordner als ZIP nach `dist/`, die Version kommt aus dem Manifest 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`artifacts` hebt `dist/` als **Job-Artefakt** auf: gehört zu dieser Pipeline, ist für Zwischenergebnisse gedacht und läuft ab 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Für die Auslieferung: **Package Registry** von GitLab, versionierte Pakete mit fester Adresse für andere Projekte und Rechner
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil II · Skripte professionell entwickeln</p>
+
+## Was Sie jetzt können
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Skripte in Visual Studio Code ausführen, debuggen und schon beim Schreiben analysieren lassen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Änderungen mit Git festhalten, in Branches entwickeln und über Merge Requests zusammenführen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Das Verhalten von Funktionen mit Pester-Tests absichern, auch mit Testdaten, Mocks und Coverage 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Analyse und Tests in einer Pipeline bei jeder Änderung automatisch laufen lassen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="5" -->Am Exitcode, am Testbericht und an der Coverage ablesen, ob eine Änderung zusammengeführt werden darf
+</div>
+
+</script></section></section><section ><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="section-slide has-dark-background drop" data-background-color="#183b66" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="kicker">Teil III</p>
+
+# PowerShell und .NET
+
+<div class="numeral">III</div>
+
+.NET-Typen direkt aufrufen, C#-Code mit `Add-Type` einbinden, eigene Klassen in PowerShell schreiben.
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Themen in Teil III
+
+<div class="numbered">
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**Statische Member**: `[Typ]::Member`, Typ-Akzeleratoren, Überladungen, Objekte erzeugen, generische Typen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**.NET unter der Shell**: Assemblies laden, .NET Framework in 5.1, modernes .NET in 7.6 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->**C# mit `Add-Type`**: Quelltext, Grenzen in der laufenden Sitzung, einzelne Methoden, fertige DLLs (Dynamic Link Libraries) 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->**Eigene Klassen**: Eigenschaften, Konstruktoren, Methoden, Vererbung, Interfaces, Enums 
+- &shy;<!-- .element: class="fragment" data-fragment-index="5" -->**Klassen in Modulen**: Typen beim Aufrufer, Neuladen, Klasse oder `[pscustomobject]` 
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Instanzmember und statische Member
+
+```powershell
+$deviceId = 'g-1042'
+$deviceId.ToUpper()                        # Instanz:  G-1042
+[string]::IsNullOrWhiteSpace($deviceId)    # statisch: False
+[datetime]::DaysInMonth(2026, 11)          # statisch: 30
+[math]::Max(1234.56, 1236.02)              # statisch: 1236,02
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**Instanzmember** gehören zu einem Objekt: `$objekt.Member` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**Statische Member** gehören zum Typ: `[Typ]::Member`, ohne Objekt 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`[math]` und `[environment]` bestehen nur aus statischen Membern: `New-Object System.Math` scheitert 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`Get-Member` zeigt die Instanzmember, `Get-Member -Static` die statischen 
+
+<div class="quelle fragment" data-fragment-index="5">
+
+Quelle: Microsoft Learn, Using static classes and methods
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Typnamen und Typ-Akzeleratoren
+
+| Schreibweise | Voller Typname | Warum es kurz geht |
+|---|---|---|
+| `[datetime]` | `System.DateTime` | Typ-Akzelerator |
+| `[regex]` | `System.Text.RegularExpressions.Regex` | Typ-Akzelerator |
+| `[cultureinfo]` | `System.Globalization.CultureInfo` | Typ-Akzelerator |
+| `[guid]` | `System.Guid` | Typ-Akzelerator |
+| `[math]` | `System.Math` | `System.` darf fehlen |
+| `[IO.Path]` | `System.IO.Path` | `System.` darf fehlen |
+| `[System.Diagnostics.Stopwatch]` | `System.Diagnostics.Stopwatch` | voller Name |
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**Typ-Akzelerator**: fest eingebauter Kurzname für einen .NET-Typ; die Liste steht in `about_Type_Accelerators` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Bei jedem anderen Namen probiert PowerShell auch `System.` davor: `[math]`, `[environment]`, `[IO.Path]`
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Statische Methoden für Zahl, Datum, Pfad und Dauer
+
+```powershell
+$de = [cultureinfo] 'de-DE'
+$value = [double]::Parse('1234,56', $de)           # double: 1234,56
+$stamp = [datetime]::ParseExact('23.11.2026 00:15',
+    'dd.MM.yyyy HH:mm', $de)
+$stamp.AddMinutes(15).ToString('HH:mm')            # 00:30
+$parsed = 0.0
+[double]::TryParse('', 'Float', $de, [ref]$parsed) # False
+$file = 'Nord_2026-11-23.csv'
+[IO.Path]::GetFileNameWithoutExtension($file)      # Nord_2026-11-23
+[timespan]::FromMinutes(15).TotalSeconds           # 900
+$watch = [System.Diagnostics.Stopwatch]::StartNew()
+$watch.Elapsed.TotalMilliseconds                   # Dauer bisher
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`Parse` wirft bei ungültigem Text; `TryParse` meldet `True` oder `False` und schreibt die Zahl in die Variable hinter `[ref]` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`ParseExact` nimmt genau ein Format an: Tag und Monat werden nicht geraten 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Die Kultur ist ein Argument des Aufrufs: Das Skript rechnet auf jedem Rechner gleich 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`[IO.Path]` arbeitet nur mit dem Text des Pfads; `Stopwatch` misst eine Dauer
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Überladungen ansehen
+
+```powershell
+[math]::Round.OverloadDefinitions -match 'double'
+```
+
+```text
+static double Round(double a)
+static double Round(double value, int digits)
+static double Round(double value, System.MidpointRounding mode)
+static double Round(double value, int digits, System.MidpointRounding mode)
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Methodenname **ohne Klammern** listet die Überladungen, `[timespan]::new` die Konstruktoren 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->PowerShell wählt die Überladung nach Zahl und Typ der Argumente 
+
+<div class="fragment" data-fragment-index="3">
+
+```powershell
+[math]::Round(2.5)                                     # 2
+[math]::Round(3.5)                                     # 4
+[math]::Round(2.5, [MidpointRounding]::AwayFromZero)   # 3
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`Round(2.5)` rundet zur geraden Zahl; kaufmännisch rundet die Überladung mit `MidpointRounding`
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Objekte erzeugen: `New-Object` und `::new()`
+
+```powershell
+$a = New-Object -TypeName System.Version -ArgumentList 7, 6
+$b = [version]::new(7, 6)                  # gleiches Ergebnis: 7.6
+
+$bytes = [byte[]] (1..16)
+New-Object -TypeName System.Guid -ArgumentList $bytes       # Fehler
+New-Object -TypeName System.Guid -ArgumentList (, $bytes)   # geht
+[guid]::new($bytes)                                         # geht
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```text
+New-Object: Cannot find an overload for "Guid" and the argument count: "16".
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`::new()` gibt es seit PowerShell 5.0 für jeden .NET-Typ mit öffentlichem Konstruktor 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`-ArgumentList` liest ein Array als Liste von Argumenten: Aus `[byte[]]` werden 16 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->100 000 `StringBuilder` laut Microsoft Learn: 0,59 s mit `::new()`, 3,17 s mit `New-Object` 
+
+<div class="quelle fragment" data-fragment-index="5">
+
+Quelle: Microsoft Learn, PowerShell scripting performance considerations
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Generische Typen
+
+```powershell
+$values = [System.Collections.Generic.List[double]]::new()
+$values.Add(1234.56)
+$values.Add('1236.02')        # Text wird zu double
+$values.Add('kWh')            # Fehler: kein double
+
+$seen = [System.Collections.Generic.HashSet[datetime]]::new()
+$seen.Add([datetime] '2026-11-23 00:15')     # True
+$seen.Add([datetime] '2026-11-23 00:15')     # False: doppelt
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Der Typparameter steht in eckigen Klammern: `List[double]`, `HashSet[datetime]`, `Dictionary[string, double]` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Die Sammlung prüft und konvertiert bei jedem `Add` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`HashSet.Add()` gibt `True` oder `False` zurück: in Funktionen auffangen, sonst landet es in der Ausgabe 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`Dictionary[string, double]` unterscheidet Groß- und Kleinschreibung der Schlüssel, eine Hashtable nicht
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## `using namespace`
+
+```powershell
+using namespace System.Collections.Generic
+using namespace System.IO
+
+$values = [List[double]]::new()
+$seen   = [HashSet[datetime]]::new()
+[Path]::GetExtension('Nord_2026-11-23.csv')     # .csv
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Ab PowerShell 5.0; steht vor allen anderen Anweisungen der Datei, davor nur Kommentare und `#Requires` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Jede Datei mit Kurznamen braucht ihre eigenen `using`-Zeilen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Verwandte Form: `using assembly` (DLL laden) 
+
+<div class="fragment" data-fragment-index="4">
+
+```text
+A 'using' statement must appear before any other statements in a script.
+```
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Assemblies laden
+
+| Aufruf | Wirkung |
+|---|---|
+| `Add-Type -AssemblyName System.Windows.Forms` | lädt eine Assembly über ihren Namen |
+| `Add-Type -Path .\Course.Core.dll` | lädt genau diese DLL-Datei |
+| `using assembly .\Course.Core.dll` | wie `-Path`, als erste Anweisung der Datei |
+| `'Course.Reading' -as [type]` | prüft, ob ein Typ bekannt ist (`$null`, wenn nicht) |
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`-AssemblyName` überlässt die Suche .NET: Zuerst zählt, was im Programmordner `$PSHOME` liegt 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`-Path` und `-LiteralPath` laden garantiert die angegebene Datei 
+
+<div class="warn fragment" data-fragment-index="3">
+
+**In 5.1:** Fehlende Assemblies laden Sie selbst, meist aus dem GAC (Global Assembly Cache). Ab PowerShell 6 gibt es keinen GAC: Die mitgelieferten liegen in `$PSHOME` und werden meist bei Bedarf geladen. Windows Forms und WPF laden Sie auch in 7.x mit `Add-Type -AssemblyName`.
+
+</div>
+
+<div class="quelle fragment" data-fragment-index="4">
+
+Quelle: Microsoft Learn, Add-Type
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## .NET unter Windows PowerShell 5.1 und PowerShell 7.6
+
+| | Windows PowerShell 5.1 | PowerShell 7.6 |
+|---|---|---|
+| gebaut auf | .NET Framework 4.x | .NET 10 (Langzeitversion, LTS) |
+| `$PSEdition` | `Desktop` | `Core` |
+| läuft auf | Windows | Windows, Linux, macOS |
+| mitgelieferte Assemblies | GAC | `$PSHOME` |
+| `'a;b'.Split` | 6 Überladungen | mehr, auch `Split(string, …)` |
+| `Add-Type` kompiliert gegen | .NET Framework | .NET 10 |
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->PowerShell reicht Methodenaufrufe an dieses .NET durch: Dieselbe Zeile kann in 5.1 eine andere Überladung treffen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Neuere APIs fehlen in 5.1, zum Beispiel `[IO.Path]::GetRelativePath()` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->DLLs für beide Shells bauen Sie gegen .NET Standard 2.0 
+
+<div class="quelle fragment" data-fragment-index="4">
+
+Quelle: Microsoft Learn, Differences between Windows PowerShell 5.1 and PowerShell 7.x
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## C# im Skript: wann es sich lohnt
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**Enge Schleifen** über sehr viele Elemente: C# rechnet dort deutlich schneller als eine PowerShell-Schleife 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**Vorhandener Code**: eine C#-Klasse oder eine DLL 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->**Windows-API**: Funktionen ohne Cmdlet und ohne .NET-Klasse, erreichbar über P/Invoke (Platform Invoke) 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->**Interfaces**: PowerShell kann keine definieren, C# schon 
+
+<div class="warn fragment" data-fragment-index="5">
+
+**Der Preis:** eine zweite Sprache im Skript, Compilerfehler statt PowerShell-Fehlern und in jeder Sitzung einmal die Zeit fürs Übersetzen. Im Modus `ConstrainedLanguage` lädt `Add-Type` nur signierte Assemblies, keinen C#-Quelltext.
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## `Add-Type -TypeDefinition`: eine C#-Klasse
+
+```csharp
+using System;
+
+namespace Course {
+    public static class GapFinder {
+        public static int CountGaps(DateTime[] times, int minutes) {
+            int gaps = 0;
+            for (int i = 1; i < times.Length; i++) {
+                TimeSpan gap = times[i] - times[i - 1];
+                if (gap.TotalMinutes > minutes) gaps++;
+            }
+            return gaps;
+        }
+    }
+}
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`Add-Type -TypeDefinition` übersetzt diesen C#-Text zu einem .NET-Typ, der Lücken zählt 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Der C#-Quelltext steht als Here-String `@' … '@` im Skript oder in einer `.cs`-Datei 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Nur was `public` ist, sehen Sie aus PowerShell 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Immer mit `namespace`, sonst kann der Typ einen vorhandenen Namen verdecken
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Den kompilierten Typ aufrufen
+
+```powershell
+$source = Get-Content -Path .\GapFinder.cs -Raw
+Add-Type -TypeDefinition $source
+
+$stamps = [datetime[]] ('2026-11-23 00:00', '2026-11-23 00:15',
+                        '2026-11-23 00:45', '2026-11-23 01:00')
+[Course.GapFinder]::CountGaps($stamps, 15)        # 1
+[Course.GapFinder] | Get-Member -Static -Name CountGaps
+```
+
+<div class="fragment" data-fragment-index="1">
+
+```text
+   TypeName: Course.GapFinder
+
+Name      MemberType Definition
+----      ---------- ----------
+CountGaps Method     static int CountGaps(datetime[] times, int minutes)
+```
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Die Assembly entsteht im Arbeitsspeicher; der Typ gilt nur in dieser Sitzung 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Danach ein .NET-Typ wie jeder andere: `::`, `Get-Member`, Überladungen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`Add-Type -Path .\GapFinder.cs` kompiliert die Datei direkt
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## `Add-Type` in der laufenden Sitzung
+
+<div class="merk">
+
+**Regel:** Ein per `Add-Type` geladener Typ bleibt bis zum Ende der Sitzung, wie er ist. Er lässt sich weder ändern noch entladen.
+
+</div>
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Typname und Namespace sind in einer Sitzung eindeutig 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Gleicher Quelltext noch einmal: `Add-Type` kompiliert nicht neu, keine Meldung 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Geänderter Quelltext, gleicher Typname: Fehler, der alte Typ gilt weiter 
+
+<div class="fragment" data-fragment-index="4">
+
+```text
+Add-Type: Cannot add type. The type name 'Course.GapFinder' already exists.
+```
+
+</div>
+
+<div class="tipp fragment" data-fragment-index="5">
+
+**Ausweg:** neue Sitzung starten oder im Kindprozess testen (`pwsh -NoProfile -File .\skript.ps1`). Die Abfrage `if (-not ('Course.GapFinder' -as [type])) { Add-Type … }` nimmt nur die Meldung weg.
+
+</div>
+
+<div class="quelle fragment" data-fragment-index="6">
+
+Quelle: Microsoft Learn, Add-Type
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## C#-Sprachstand in 5.1 und 7.x
+
+```csharp
+namespace Course {
+    public static class Label {
+        // läuft in 7.x, scheitert in 5.1: => und $"…" sind C# 6
+        public static string Modern(string id, double value)
+            => $"{id}: {value:F2}";
+        // läuft in beiden: Blockkörper und string.Format
+        public static string Classic(string id, double value) {
+            return string.Format("{0}: {1:F2}", id, value);
+        }
+    }
+}
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->7.x kompiliert mit einem aktuellen C#-Compiler gegen das .NET der Shell 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Für beide Shells: C# 5 schreiben und in 5.1 testen 
+
+<div class="warn fragment" data-fragment-index="3">
+
+**In 5.1:** Compiler des .NET Framework mit Sprachstand C# 5. Es fehlen unter anderem `$"…"`, `=>` an Methoden, `?.` und `nameof`.
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## `Add-Type -MemberDefinition`: Windows-API aufrufen
+
+```powershell
+$signature = @'
+[DllImport("kernel32.dll")]
+public static extern ulong GetTickCount64();
+'@
+$params = @{
+    MemberDefinition = $signature
+    Name             = 'Kernel32'
+    Namespace        = 'Win32'
+}
+Add-Type @params
+[timespan]::FromMilliseconds([Win32.Kernel32]::GetTickCount64())
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Sie liefern nur die Methode, `Add-Type` baut die Klasse darum; `-Name` ist Pflicht 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Ohne `-Namespace` landet der Typ in `Microsoft.PowerShell.Commands.AddType.AutoGeneratedTypes` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Aufrufe in `kernel32.dll` oder `user32.dll` laufen nur unter Windows
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Fertige DLLs: `-OutputAssembly`, `-Path`, `-ReferencedAssemblies`
+
+```powershell
+# einmal: kompilieren und als DLL ablegen
+Add-Type -Path .\Reading.cs -OutputAssembly .\Course.Core.dll
+
+# in jeder Sitzung: DLL laden, nichts kompilieren
+Add-Type -Path .\Course.Core.dll
+
+# C#-Code, der Typen aus der DLL benutzt
+Add-Type -Path .\Checks.cs -ReferencedAssemblies @(
+    '.\Course.Core.dll', 'System.Linq')
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`-Path` entscheidet nach der Endung: `.cs` wird kompiliert, `.dll` geladen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`-OutputAssembly` schreibt die DLL, lädt sie aber nicht: dafür `-PassThru` oder ein zweiter Aufruf 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Mit `-ReferencedAssemblies` fehlen in 7.x die Standardverweise auf .NET: `System.Linq` und andere gehören dann mit in die Liste 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->`-OutputType` kennt seit 7.1 nur noch `Library`
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Kompiliertes Cmdlet in C#
+
+```csharp
+using System.Management.Automation;
+namespace Course.Cmdlets {
+    [Cmdlet(VerbsCommon.Get, "DeviceLabel")]
+    public sealed class GetDeviceLabelCommand : PSCmdlet {
+        [Parameter(Mandatory = true, ValueFromPipeline = true)]
+        public string DeviceId { get; set; }
+        protected override void ProcessRecord() {
+            WriteObject("Gerät " + DeviceId.ToUpperInvariant());
+        }
+    }
+}
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Klasse erbt von `PSCmdlet`: Attribute statt `param()`, `ProcessRecord()` statt `process {}` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Als Bibliothek gebaut (`PowerShellStandard.Library`, Ziel `netstandard2.0`), geladen mit `Import-Module` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Lohnt sich für ganze Module in C#; für einzelne Helfer genügt `Add-Type`
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Eigene Klassen: Eigenschaften mit Typ und Prüfung
+
+```powershell
+class Device {
+    [string] $Id
+    [ValidatePattern('^(Nord|Sued|West|Ost)$')]
+    [string] $Site
+    [Nullable[double]] $Total        # $null: noch kein Wert
+    [ValidateNotNullOrEmpty()]
+    [string] $Unit = 'kWh'
+}
+$d = [Device]::new()
+$d.Site = 'Mitte'                    # Fehler: Muster verletzt
+$d.Total = 'abc'                     # Fehler: kein double
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Typ und Attribute prüfen bei **jeder Zuweisung**, nicht beim Erzeugen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`[double]` macht aus `$null` eine 0: für fehlende Werte `[Nullable[double]]` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`[ValidateScript()]` geht nicht: Attributargumente müssen Konstanten sein 
+
+<div class="quelle fragment" data-fragment-index="4">
+
+Quelle: Microsoft Learn, about_Classes
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Konstruktoren und Überladung
+
+```powershell
+class Device {
+    [string] $Id
+    [Nullable[double]] $Total
+    Device([string] $id) { $this.Init($id) }
+    Device([string] $id, [double] $total) {
+        $this.Init($id)
+        $this.Total = $total
+    }
+    hidden [void] Init([string] $id) { $this.Id = $id }
+}
+[Device]::new                             # beide Überladungen
+[Device]::new('G-1042', 1236.02).Total    # 1236,02
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Eigener Konstruktor vorhanden: Der parameterlose entfällt, auch `[Device]@{ … }` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Kein Verketten: Gemeinsamer Code gehört in eine `hidden`-Methode 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Parameter sind immer Pflicht, ohne Standardwerte und Attribute
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Methoden: Rückgabetyp, `return`, `$this`
+
+```powershell
+class Device {
+    [string] $Id = 'G-1042'
+    [Nullable[double]] $Total
+
+    [bool] IsPlausible() {
+        'Prüfung läuft'                   # wird verworfen
+        return ($null -ne $this.Total) -and ($this.Total -ge 0)
+    }
+    [void] Add([double] $amount) {
+        $this.Total = $this.Total + $amount
+    }
+}
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Methoden nennen ihren Rückgabetyp; ohne Angabe gilt `[void]` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Zurück geht nur, was hinter `return` steht: Lose Ausdrücke verschwinden 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Eigenschaften nur über `$this.`, Variablen von außen nur mit `$script:` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Fehler melden Sie mit `throw`
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## `hidden` und `static`
+
+```powershell
+class Device {
+    [string] $Id
+    [Nullable[double]] $Total
+    hidden [string] $SourceLine
+    static [cultureinfo] $Culture = [cultureinfo] 'de-DE'
+    static [Device] Parse([string] $line) {
+        $p = $line.Split(';')
+        $d = [Device]@{ Id = $p[0]; SourceLine = $line }
+        $provider = [Device]::Culture
+        if ($p[2]) { $d.Total = [double]::Parse($p[2], $provider) }
+        return $d
+    }
+}
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`static`: gehört zur Klasse, Aufruf `[Device]::Parse(…)`, kein `$this` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`hidden`: fehlt in Ausgabe und `Get-Member`, bleibt aber von außen erreichbar 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->`ConvertTo-Json` schreibt versteckte Eigenschaften trotzdem mit
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Vererbung und `base`
+
+```powershell
+class SubDevice : Device {
+    [string] $ParentId
+    SubDevice([string] $id, [double] $total, [string] $parentId)
+        : base($id, $total) {
+        $this.ParentId = $parentId
+    }
+    [bool] IsPlausible() {
+        return ([Device] $this).IsPlausible() -and $this.ParentId
+    }
+}
+$s = [SubDevice]::new('G-1042', 1239.10, 'G-1031')
+$s -is [Device]            # True
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`SubDevice` (ein Unterzähler) erbt `Id` und `Total` von `Device`, ergänzt `ParentId` und verschärft `IsPlausible()` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Genau eine Basisklasse; `: base(…)` reicht Argumente an ihren Konstruktor weiter 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Basismethode aufrufen: `([Device] $this).IsPlausible()` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->Jede Methode lässt sich überschreiben; `private` und `sealed` gibt es nicht
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Interfaces implementieren, `ToString()` überschreiben
+
+```powershell
+class Device : System.IComparable {
+    [string] $Id
+    [string] $Site
+    [int] CompareTo([object] $other) {
+        return $this.Site.CompareTo($other.Site)
+    }
+    [string] ToString() {
+        return '{0} ({1})' -f $this.Id, $this.Site
+    }
+}
+$a = [Device]@{ Id = 'G-1042'; Site = 'West' }
+$b = [Device]@{ Id = 'G-1043'; Site = 'Nord' }
+"$($a, $b | Sort-Object)"            # G-1043 (Nord) G-1042 (West)
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Interfaces stehen hinter dem Doppelpunkt; jede ihrer Methoden muss vorhanden sein 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`IComparable` trägt `Sort-Object`, `-gt`, `-lt` und `Measure-Object -Maximum` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Eigene Interfaces definieren Sie in C#, nicht in PowerShell
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Enums als Eigenschafts- und Parametertyp
+
+```powershell
+enum MeasurementStatus { OK; Ersatzwert; Gestoert }
+class Measurement {
+    [string] $DeviceId
+    [MeasurementStatus] $Status
+}
+$m = [Measurement]@{ DeviceId = 'G-1042'; Status = 'Gestoert' }
+$m.Status -eq [MeasurementStatus]::Gestoert    # True
+[int] $m.Status                                # 2
+$m.Status = 'Kaputt'                           # Fehler
+[Measurement]::new().Status                    # OK
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Text aus der Datei wird beim Zuweisen zum Enum-Wert; Unbekanntes ist ein Fehler 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Das erste Label (Wert 0) ist der Standardwert: Ein nie gesetzter Status meldet `OK` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Als Parametertyp: `[MeasurementStatus] $Status` prüft die Eingabe und bietet die Labels zur Vervollständigung an, ein `[ValidateSet()]` ist dann überflüssig 
+
+<div class="warn fragment" data-fragment-index="4">
+
+**In 5.1:** Basistyp immer `Int32`; `enum Name : byte { … }` gibt es erst ab PowerShell 6.2.
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## `[Flags()]`: mehrere Befunde in einem Wert
+
+```powershell
+[Flags()] enum Finding {
+    None           = 0
+    MissingValue   = 1
+    NegativeValue  = 2
+    Gap            = 4
+    DuplicateStamp = 8
+}
+$found = [Finding]::MissingValue -bor [Finding]::Gap
+$found                                     # MissingValue, Gap
+$found.HasFlag([Finding]::Gap)             # True
+[Finding] 'NegativeValue, DuplicateStamp'  # aus Text
+[int] $found                               # 5
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Jedes Label braucht ausdrücklich seine eigene Zweierpotenz 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Ohne Werte zählt PowerShell 0, 1, 2, 3, 4: `MissingValue -bor NegativeValue` ergibt dann `Gap` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Setzen mit `-bor`, prüfen mit `HasFlag()`, löschen mit `-band (-bnot …)`
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Klassen in Modulen: `Import-Module` und `using module`
+
+<img src="figs/using-module-sichtbarkeit.png" alt="" style="object-fit: scale-down">
+
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->`Import-Module` und `#Requires -Modules` bringen Funktionen, Aliase und Variablen, **keine Klassen und Enums** 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`using module` lädt das Modul **und** macht seine Typen in der Datei bekannt 
+
+<div class="quelle fragment" data-fragment-index="3">
+
+Quelle: Microsoft Learn, about_Classes
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## `using module`: Regeln
+
+```powershell
+using module MeasurementTools      # erste Anweisung der Datei
+
+$row = Import-MeasurementFile .\Nord_2026-11-23.csv |
+    Select-Object -First 1
+$row -is [Measurement]                    # True
+$row.Status -eq [MeasurementStatus]::OK   # True
+```
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Dritte Form neben `using namespace` und `using assembly`: steht vor allen anderen Anweisungen; Modulname oder Pfad ohne Variablen wie `$PSScriptRoot` 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Sichtbar werden nur Klassen, die **direkt in der Root-Datei** des Moduls (`.psm1`) stehen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Per Dot-Sourcing nachgeladene Klassen bleiben für den Aufrufer unsichtbar 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->In VS Code sorgt erst die `using module`-Zeile für Vervollständigung der eigenen Typen
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Geänderte Klassen in derselben Sitzung
+
+| Schritt in einer Sitzung | `[Measurement]` im Skript | Funktion im Modul |
+|---|---|---|
+| Skript mit `using module` läuft | Version A | Version A |
+| Klasse in der `.psm1` geändert, Skript läuft erneut | Version A | Version A |
+| `Import-Module -Force`, Skript läuft erneut | Version A | Version B |
+| neue Sitzung, Skript läuft | Version B | Version B |
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Klassen und Enums eines Moduls lassen sich in der Sitzung weder entladen noch neu laden 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->`Import-Module -Force` lädt das Modul neu, der Typ im Skript bleibt der alte: Danach arbeiten zwei Fassungen der Klasse nebeneinander 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Nach jeder Änderung an einer Klasse: neue Sitzung, Tests im Kindprozess 
+
+<div class="quelle fragment" data-fragment-index="4">
+
+Quelle: Microsoft Learn, about_Classes; Tabelle: eigene Beobachtung mit PowerShell 7.5.4
+
+</div>
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="smaller drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Klasse oder `[pscustomobject]`
+
+| | `[pscustomobject]` | PowerShell-Klasse | C#-Typ über `Add-Type` |
+|---|---|---|---|
+| Typprüfung der Werte | nein | ja | ja |
+| Methoden, Konstruktoren | Methoden über `Add-Member`, keine Konstruktoren | ja | ja |
+| als Parametertyp | `[PSTypeName('…')]` | `[Measurement]` | `[Course.Reading]` |
+| Aufwand | eine Zeile | Klasse, im Modul `using module` | zweite Sprache |
+| ändern in der Sitzung | jederzeit | neue Sitzung | neue Sitzung |
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->**`[pscustomobject]`**: Ausgabeobjekte von Funktionen, für Pipeline, Export und Formatierung 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->**Klasse**: Werte mit Regeln, Verhalten, ein Typ für mehrere Funktionen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->**C#-Typ**: Tempo, Interfaces, vorhandener Code
+</div>
+
+</script></section><section data-separator="?
+---?
+" data-separator-vertical="?
+--?
+" data-separator-notes="note:" data-markdown><script type="text/template"><!-- .slide: class="drop" template="" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 720px; width: 1280px; min-height: 720px; display: flex; flex-direction: column; align-items: start; justify-content: center" absolute="true">
+
+<p class="eyebrow">Teil III · PowerShell und .NET</p>
+
+## Was Sie jetzt können
+
+- &shy;<!-- .element: class="fragment" data-fragment-index="1" -->Statische Member von .NET-Typen finden und aufrufen, Überladungen lesen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="2" -->Objekte mit `::new()` erzeugen, generische Sammlungen und `using namespace` nutzen 
+- &shy;<!-- .element: class="fragment" data-fragment-index="3" -->Assemblies laden und einschätzen, welche APIs es unter 5.1 und 7.6 gibt 
+- &shy;<!-- .element: class="fragment" data-fragment-index="4" -->C# mit `Add-Type` einbinden: als Quelltext, einzelne Methode oder fertige DLL 
+- &shy;<!-- .element: class="fragment" data-fragment-index="5" -->Klassen mit geprüften Eigenschaften, Konstruktoren, Methoden, Vererbung und Interfaces schreiben 
+- &shy;<!-- .element: class="fragment" data-fragment-index="6" -->Enums und Flags als Typen für Eigenschaften und Parameter verwenden 
+- &shy;<!-- .element: class="fragment" data-fragment-index="7" -->Klassen eines Moduls über `using module` bereitstellen; Klasse oder `[pscustomobject]` wählen
 </div>
 
 </script></section></section><section ><section data-separator="?
